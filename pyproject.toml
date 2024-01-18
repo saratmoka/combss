@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "combss"
+version = "0.1.0"
+description = "A package for deploying COMBSS: Best Subset Selection via Continuous Optimisation"
+authors = ["Hua Hu <z5313381@ad.unsw.edu.au>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^1.26.3"
+SciPy = "^1.11.4"
+tqdm = "^4.66.1"
+sklearn = "^0.0.post12"
+matplotlib = "^3.8.2"
+pandas = "^2.1.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
