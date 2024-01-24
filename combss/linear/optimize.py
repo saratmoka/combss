@@ -1,5 +1,5 @@
 import numpy as np
-from numpy.linalg import norm
+from numpy.linalg import pinv, norm
 from scipy.sparse.linalg import cg
 import time
 
