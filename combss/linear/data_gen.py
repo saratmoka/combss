@@ -100,49 +100,5 @@ def gen_data(n, p, mean, cov, noise_var, beta0, centralize=False):
     y = np.array(y)
     return [X, y]
 
-""" 
-Function to generate exponential grid.
-"""
-def gen_lam_grid_exp(y, size, para):
-    
-    lam_max = norm(y)**2/(y.shape[0])  
-    lam_grid = lam_max*np.array([para**i for i in range(size)])
-    # lam_grid = np.append(lam_grid, 0.0)
-    lam_grid = np.flip(lam_grid)
-    
-    return lam_grid
-""" 
-Function to generate harmonic grid.
-"""
-def gen_lam_grid_harm(y, size, para):
-    
-    lam_max = norm(y)**2/(y.shape[0])  
-    #print("Lambda max:", lam_max)
-    lam_grid = lam_max*np.array([1/(para*i +1 ) for i in range(size+1)])
-    lam_grid = np.append(lam_grid, 0.0)
-    lam_grid = np.flip(lam_grid)
-    
-    return lam_grid
 
-""" 
-Function to generate sqaure-root harmonic grid.
-"""
-def gen_lam_grid_sqrt_harm(y, size, para):
-    
-    lam_max = norm(y)**2/(y.shape[0])  
-    #print("Lambda max:", lam_max)
-    lam_grid = lam_max*np.array([1/(para*np.sqrt(i) +1 ) for i in range(size+1)])
-    lam_grid = np.flip(lam_grid)
-    
-    return lam_grid
-""" 
-Function to generate linear grid.
-"""
-def gen_lam_grid_lin(y, size, para):
-    
-    #lam_max = norm(y)**2/(y.shape[0])  
-    lam_grid = np.arange(0,0.3,step=0.005)
-
-    
-    return lam_grid
 
