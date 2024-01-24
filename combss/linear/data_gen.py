@@ -1,3 +1,5 @@
+import numpy as np
+import sys
 
 def gen_beta0(p, k0, case):
     """
