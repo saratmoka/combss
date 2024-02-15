@@ -774,7 +774,7 @@ def combss(X_train, y_train, X_test, y_test,
     
     return model_opt, mse_opt, beta_opt, lam_opt, toc - tic
 
-
+'''
 #%%
 """ 
 Function for running COMBSS on several datasets and 
@@ -860,7 +860,7 @@ def bulk_sim_given_data(n, p, q, beta_type, K0, snr, corr,
 
     return df
 
-
+'''
 
 
 

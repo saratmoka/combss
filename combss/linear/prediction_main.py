@@ -67,6 +67,7 @@ for snr in snr_low_list:
 
 """
 
+'''
 #%%
 
 snr = 5
@@ -78,3 +79,4 @@ df = bulk_sim_given_data(n, p, q, beta_type, K0, snr, corr,
                      nlam=nlam,
                      eta = eta,
                      seed=1234)
+'''
