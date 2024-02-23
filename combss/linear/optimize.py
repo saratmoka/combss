@@ -4,6 +4,20 @@ from scipy.sparse.linalg import cg
 from scipy.optimize import minimize, LinearConstraint
 import time
 
+'''
+Global variables for boolean relaxation optimisation
+'''
+global X, XX, Xy, y, Z, delta, cg_maxiter, cg_tol
+
+cg_maxiter = None
+cg_tol = 1e-5
+
+## TODO 23/02/2024 : Write the functions for generating f0 and cg_f0
+'''
+	Use Lambda function and global variable?
+	OR utilise args = () in scipy.optimize.minimize (have a look)
+
+'''
 
 
 def t_to_w(t):
@@ -362,8 +376,9 @@ def BGD_combss(X, y, lam, t_init,
 	return  t, model, converge, l+1
 
 #%% 
+# Write a lambda function, Xx and Xy as global variables, dont need to feed in Xx and Xy every time we computed cg.
 
-def br_f0(X, y, t, delta):
+def br_f0(t):
 	n = X.shape[0]
 	p = X.shape[1]
 	
@@ -377,10 +392,87 @@ def br_f0(X, y, t, delta):
 	beta_tilde = np.linalg.pinv(X_t.T @ X_t + delta * (np.eye(p) - T_t @ T_t)) @ X_t.T @ y
 	
 	# Compute the desired function
-	residual = y - X_t @ beta_tilde
-	f0 = np.linalg.norm(residual)**2 / n
+	diff = y - X_t @ beta_tilde
+	f0 = np.linalg.norm(diff)**2 / n
 	
 	return f0
+
+def cg_f0(t, beta,  c,  g1, g2):
+	"""
+	Function to estimate gradient of f(t) via conjugate gradient
+	Here, XX = (X.T@X)/n, Xy = (X.T@y)/n, Z = XX - (delta/n) I
+
+	QQQQ Describe each argument QQQQ
+	
+	"""    
+	p = t.shape[0]
+	n = y.shape[0]
+	
+	if n >= p:
+		## Construct Lt
+		ZT = np.multiply(Z, t)
+		Lt = np.multiply(ZT, t[:, np.newaxis])
+		diag_Lt = np.diagonal(Lt) + (delta/n)
+		np.fill_diagonal(Lt, diag_Lt)
+		TXy = np.multiply(t, Xy)
+		
+		## Constructing beta estimate
+		beta, _ = cg(Lt, TXy, x0=beta, maxiter=cg_maxiter, tol=cg_tol)
+		
+		## Constructing a and b
+		gamma = t*beta
+		a = -Xy
+		a += XX@gamma
+		b = a - (delta/n)*gamma
+		
+		## Constructing c and d
+		c, _ = cg(Lt, t*a, x0=c, maxiter=cg_maxiter, tol=cg_tol) 
+		
+		d = Z@(t*c)
+		
+		## Constructing gradient
+		grad = 2*(beta*(a - d) - (b*c))
+		
+	else:
+		## constructing Lt_tilde
+		temp = 1 - t*t
+		temp[temp < 1e-8] = 1e-8 
+		"""
+		Above we map all the values of temp smaller than 1e-8 to 1e-8 to avoid numerical instability that can 
+		arise in the following line.
+		"""
+		S = n*np.divide(1, temp)/delta
+		
+		
+		Xt = np.multiply(X, t)/np.sqrt(n)
+		XtS = np.multiply(Xt, S)
+		Lt_tilde = Xt@(XtS.T)
+		np.fill_diagonal(Lt_tilde, np.diagonal(Lt_tilde) + 1)
+		
+	   
+		## estimate beta
+		tXy = t*Xy
+		XtStXy = XtS@tXy         
+		g1, _ = cg(Lt_tilde, XtStXy, x0=g1, maxiter=cg_maxiter, tol=cg_tol)
+		beta = S*(tXy - Xt.T@g1)
+
+
+		## Constructing a and b
+		gamma = t*beta
+		a = -Xy
+		a += XX@gamma
+		b = a - (delta/n)*gamma
+		
+		## Constructing c and d
+		ta = t*a
+		g2, _ = cg(Lt_tilde, XtS@ta, x0=g2, maxiter=cg_maxiter, tol=cg_tol) 
+		c = S*(ta - Xt.T@g2)
+		d = Z@(t*c)
+		
+		## Constructing gradient
+		grad = 2*(beta*(a - d) - (b*c))
+
+	return grad
 
 ### 
 def BR_combss(X, y, t_init, k, delta_frac = 1):
@@ -391,38 +483,28 @@ def BR_combss(X, y, t_init, k, delta_frac = 1):
 	(n, p) = X.shape
 	
 	## One time operations
+	## One time operations
 	delta = delta_frac*n
-	
-	## Initialization
-	t = t_init.copy()
-	
-	f0 = br_f0(X, y, t, delta)
-	
-	# Create A
-	ones_row = np.ones((1, p))
-	identity_matrix = np.eye(p)
-	A = np.vstack((ones_row, identity_matrix))
-	
-	# Create U
-	ones_col = np.ones((p,1))
-	u = np.vstack((k, ones_col))
+	Xy = (X.T@y)/n
+	XX = (X.T@X)/n
+	Z = XX.copy()
+	np.fill_diagonal(Z, np.diagonal(Z) - (delta/n))
 
-	t_lb = np.zeros_like(t)
-	t_ub = np.ones_like(t)
-	t_bounds = [t_lb, t_ub]
+	# Create Bound Matrix
+	t_lb = np.zeros((p,1))
+	t_ub = np.ones((p,1))
+	bound_matrix = [t_lb, t_ub]
 	
-	con_lb = np.zeros((p+1, 1))
-	con_ub = u
-	
-	At = A.dot(t)
-	initial_guess = A.dot(t_init)
+	# Create Constraint Matrix
+	A = np.ones((1, p))
+	con_lb = [0]
+	con_ub = [k]
 
-	constraint = LinearConstraint[At, con_lb, con_ub]
+	constraint = LinearConstraint[A, con_lb, con_ub]
 
-	result = minimize(f0, initial_guess, args=(X, y, t, delta), bounds=t_bounds, constraints=constraint)
+	result = minimize(br_f0, A, jac = cg_f0, bounds=bound_matrix, constraints=constraint)
 
-   
-	return  t, result
+	return  result.x
 
 def combss_dynamic(X, y, 
 				   q = None,
