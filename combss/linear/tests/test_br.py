@@ -55,6 +55,6 @@ if n_tinit == 0:
 	t_init = [np.ones(p)*0.5]
 	n_tinit = 1
 
-t_result = optimize.BR_combss(X_train, y_train, t_init=t_init[0], k = 15, delta_frac=delta_frac)
+br_result = optimize.BR_combss(X_train, y_train, t_init=t_init[0], k = 15, delta_frac=delta_frac)
 
-print(t_result)
+print(f"Boolean Relaxation: {br_result}")
