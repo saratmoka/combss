@@ -2,15 +2,14 @@ import numpy as np
 from numpy.linalg import pinv, norm
 from scipy.sparse.linalg import cg
 from scipy.optimize import minimize, LinearConstraint, Bounds
-import time
+import time, scipy
 
 '''
-Class variables for boolean relaxation optimisation
+Global variables for scipy optimisation
 '''
 
-
-global br_X, br_XX, br_Xy, br_y, br_Z, br_beta, br_delta, br_c, br_g1, br_g2, br_cg_maxiter, br_cg_tol
-br_cg_maxiter, br_cg_tol = None, 1e-5
+global sp_X, sp_XX, sp_Xy, sp_y, sp_Z, sp_beta, sp_delta, sp_c, sp_g1, sp_g2, sp_cg_maxiter, sp_cg_tol
+sp_cg_maxiter, sp_cg_tol = None, 1e-5
 
 
 def t_to_w(t):
@@ -372,21 +371,21 @@ def BGD_combss(X, y, lam, t_init,
 # Use global variables for Xx and Xy, we compute cg.
 
 def br_f0(t):
-	print("Finding the value of the objective function..")
-	n = br_X.shape[0]
-	p = br_X.shape[1]
+	n = sp_X.shape[0]
+	p = sp_X.shape[1]
 	
 	# Construct the diagonal matrix T_t
+	# Change later for time complexity
 	T_t = np.diag(t)
 	
 	# Compute X_t
-	X_t = br_X @ T_t
+	X_t = sp_X @ T_t
 	
 	# Compute beta_tilde
-	beta_tilde = np.linalg.pinv(X_t.T @ X_t + br_delta * (np.eye(p) - T_t @ T_t)) @ X_t.T @ br_y
+	beta_tilde = np.linalg.pinv(X_t.T @ X_t + sp_delta * (np.eye(p) - T_t @ T_t)) @ X_t.T @ sp_y
 	
 	# Compute the desired function
-	diff = br_y - X_t @ beta_tilde
+	diff = sp_y - X_t @ beta_tilde
 	f0 = np.linalg.norm(diff)**2 / n
 	
 	return f0
@@ -399,33 +398,31 @@ def cg_f0(t):
 	QQQQ Describe each argument QQQQ
 	
 	""" 
-
-	print("Estimating the gradient of f0 using conjugate gradient..")
    
 	p = t.shape[0]
-	n = br_y.shape[0]
+	n = sp_y.shape[0]
 	
 	if n >= p:
 		## Construct Lt
-		ZT = np.multiply(br_Z, t)
+		ZT = np.multiply(sp_Z, t)
 		Lt = np.multiply(ZT, t[:, np.newaxis])
-		diag_Lt = np.diagonal(Lt) + (br_delta/n)
+		diag_Lt = np.diagonal(Lt) + (sp_delta/n)
 		np.fill_diagonal(Lt, diag_Lt)
-		TXy = np.multiply(t, br_Xy)
+		TXy = np.multiply(t, sp_Xy)
 		
 		## Constructing beta estimate
-		beta, _ = cg(Lt, TXy, x0=br_beta, maxiter=br_cg_maxiter, tol=br_cg_tol)
+		beta, _ = cg(Lt, TXy, x0=sp_beta, maxiter=sp_cg_maxiter, tol=sp_cg_tol)
 		
 		## Constructing a and b
 		gamma = t*beta
-		a = -br_Xy
-		a += br_XX@gamma
-		b = a - (br_delta/n)*gamma
+		a = -sp_Xy
+		a += sp_XX@gamma
+		b = a - (sp_delta/n)*gamma
 		
 		## Constructing c and d
-		c, _ = cg(Lt, t*a, x0=br_c, maxiter=br_cg_maxiter, tol=br_cg_tol) 
+		c, _ = cg(Lt, t*a, x0=sp_c, maxiter=sp_cg_maxiter, tol=sp_cg_tol) 
 		
-		d = br_Z@(t*c)
+		d = sp_Z@(t*c)
 		
 		## Constructing gradient
 		grad = 2*(beta*(a - d) - (b*c))
@@ -438,36 +435,36 @@ def cg_f0(t):
 		Above we map all the values of temp smaller than 1e-8 to 1e-8 to avoid numerical instability that can 
 		arise in the following line.
 		"""
-		S = n*np.divide(1, temp)/br_delta
+		S = n*np.divide(1, temp)/sp_delta
 		
 		
-		Xt = np.multiply(br_X, t)/np.sqrt(n)
+		Xt = np.multiply(sp_X, t)/np.sqrt(n)
 		XtS = np.multiply(Xt, S)
 		Lt_tilde = Xt@(XtS.T)
 		np.fill_diagonal(Lt_tilde, np.diagonal(Lt_tilde) + 1)
 		
 	   
 		## estimate beta
-		tXy = t*br_Xy
+		tXy = t*sp_Xy
 		XtStXy = XtS@tXy
-		global br_g1         
-		br_g1, _ = cg(Lt_tilde, XtStXy, x0=br_g1, maxiter=br_cg_maxiter, tol=br_cg_tol)
-		beta = S*(tXy - Xt.T@br_g1)
+		global sp_g1         
+		sp_g1, _ = cg(Lt_tilde, XtStXy, x0=sp_g1, maxiter=sp_cg_maxiter, tol=sp_cg_tol)
+		beta = S*(tXy - Xt.T@sp_g1)
 
 
 		## Constructing a and b
 		gamma = t*beta
-		a = -br_Xy
-		a += br_XX@gamma
-		b = a - (br_delta/n)*gamma
+		a = -sp_Xy
+		a += sp_XX@gamma
+		b = a - (sp_delta/n)*gamma
 		
 		## Constructing c and d
 		ta = t*a
-		global br_g2
-		br_g2, _ = cg(Lt_tilde, XtS@ta, x0=br_g2, maxiter=br_cg_maxiter, tol=br_cg_tol) 
+		global sp_g2
+		sp_g2, _ = cg(Lt_tilde, XtS@ta, x0=sp_g2, maxiter=sp_cg_maxiter, tol=sp_cg_tol) 
 
-		c = S*(ta - Xt.T@br_g2)
-		d = br_Z@(t*c)
+		c = S*(ta - Xt.T@sp_g2)
+		d = sp_Z@(t*c)
 		
 		## Constructing gradient
 		grad = 2*(beta*(a - d) - (b*c))
@@ -481,39 +478,38 @@ def BR_combss(X, y, t_init, k, delta_frac = 1):
 	Implementation of the constrained optimisation for combss with boolean relaxation. 
 	"""
 
-	print("br_combss")
 	## One time operations
-	global br_X
-	br_X = X
+	global sp_X
+	sp_X = X
 
-	global br_y
-	br_y = y    
+	global sp_y
+	sp_y = y    
 	(n, p) = X.shape
 
-	global br_c 
-	br_c = np.zeros(p)
+	global sp_c 
+	sp_c = np.zeros(p)
 
-	global br_g1
-	br_g1 = np.zeros(n)
+	global sp_g1
+	sp_g1 = np.zeros(n)
 
-	global br_g2
-	br_g2 = np.zeros(n)
+	global sp_g2
+	sp_g2 = np.zeros(n)
 	
-	global br_delta
-	br_delta = delta_frac*n
+	global sp_delta
+	sp_delta = delta_frac*n
 
-	global br_Xy 
-	br_Xy = (X.T@y)/n
+	global sp_Xy 
+	sp_Xy = (X.T@y)/n
 
-	global br_XX 
-	br_XX = (X.T@X)/n
+	global sp_XX 
+	sp_XX = (X.T@X)/n
 
-	global br_Z
-	br_Z = br_XX.copy()
-	np.fill_diagonal(br_Z, np.diagonal(br_Z) - (br_delta/n))
+	global sp_Z
+	sp_Z = sp_XX.copy()
+	np.fill_diagonal(sp_Z, np.diagonal(sp_Z) - (sp_delta/n))
 
-	global br_beta
-	br_beta = np.zeros(p)
+	global sp_beta
+	sp_beta = np.zeros(p)
 
 	# Create Bound Matrix
 	bounds = Bounds([0]*p, [1]*p)
@@ -525,6 +521,120 @@ def BR_combss(X, y, t_init, k, delta_frac = 1):
 	result = minimize(br_f0, t_init, jac = cg_f0, bounds=bounds, constraints=constraint)
 
 	return result.x
+
+def v1_f0(i):
+	# Note that the first p elements of i correspond to t, and the last p elements of i correspond to beta
+	n = sp_X.shape[0]
+	p = sp_X.shape[1]
+
+	t = i[:p]
+	beta = i[-p:]
+	
+	# Construct the diagonal matrix T_t
+	# Change later for time complexity
+	T_t = np.diag(t)
+	
+	# Computer first expression
+	first_expression = np.linalg.norm(sp_y - sp_X.dot(np.multiply(beta,t)))**2 / n
+
+	# Compute second expression
+	gamma_T_beta = scipy.linalg.sqrtm(np.eye(p) - T_t @ T_t) @ beta
+	second_expression = sp_delta/n*np.linalg.norm(gamma_T_beta)**2
+	
+	# Compute the desired function
+	f0 = first_expression + second_expression
+	return f0
+
+def v1_grad(i):
+	"""
+	Function to estimate gradient of f(t) (via conjugate gradient ?)
+
+	QQQQ Describe each argument QQQQ
+	
+	""" 
+
+	n = sp_X.shape[0]
+	p = sp_X.shape[1]
+
+	grad = [0]*2*p
+
+	t = i[:p]
+	beta = i[-p:]
+
+	p = t.shape[0]
+	n = sp_y.shape[0]
+
+	first_element = (sp_X.T @ sp_X)*np.multiply(beta, t)
+	second_element = sp_delta*(np.multiply(beta, t))
+	third_element = sp_X.T @ sp_y
+
+	gradt = np.multiply(2/n*beta, first_element - second_element + third_element)
+	grad[:p] = gradt
+
+	middle_element = np.multiply(t, sp_X.T @ sp_y)
+	last_element = sp_delta*np.multiply(t, np.multiply(t, beta))
+
+	gradbeta = 2/n * (np.multiply(t, first_element) - middle_element + sp_delta*beta - last_element)
+	grad[-p:] = gradbeta
+	return grad
+
+def v1_scipy_combss(X, y, t_init, k, delta_frac = 1):
+		
+	"""
+	Implementation of the constrained optimisation for combssv1 with scipy optimisation. 
+	"""
+	p = len(t_init)
+	beta_init = np.array([0]*p)
+	i_init = np.concatenate((t_init, beta_init))
+
+	## One time operations
+	global sp_X
+	sp_X = X
+
+	global sp_y
+	sp_y = y    
+	(n, p) = X.shape
+
+	global sp_c 
+	sp_c = np.zeros(p)
+
+	global sp_g1
+	sp_g1 = np.zeros(n)
+
+	global sp_g2
+	sp_g2 = np.zeros(n)
+	
+	global sp_delta
+	sp_delta = delta_frac*n
+
+	global sp_Xy 
+	sp_Xy = (X.T@y)/n
+
+	global sp_XX 
+	sp_XX = (X.T@X)/n
+
+	global sp_Z
+	sp_Z = sp_XX.copy()
+	np.fill_diagonal(sp_Z, np.diagonal(sp_Z) - (sp_delta/n))
+
+	global sp_beta
+	sp_beta = np.zeros(p)
+
+	# Create Bound Matrix
+	bounds = Bounds(np.repeat([0, -np.inf], [p, p]), np.repeat([1, np.inf], [p, p]))
+	
+	# Create Constraint Matrix
+	A1 = np.array([1]*p)
+	A2 = np.array([0]*p)
+	A = np.concatenate((A1,A2))
+	
+	con_ub = [k]
+	constraint = LinearConstraint(A, lb=0, ub=con_ub)
+
+	result = minimize(v1_f0, i_init, jac = v1_grad, bounds=bounds, constraints=constraint)
+
+	return result.x
+
 
 def combss_dynamic(X, y, 
 				   q = None,
