@@ -72,6 +72,7 @@ result_MSE = calculate_MSE(n, X_train, y_train, result_indices)
 print(f"Boolean Relaxation Result Indicies: {result_indices}, MSE: {result_MSE}\n")
 
 combinations_list = list(combinations(range(0, p), k))
+print(len(combinations_list))
 total_combinations = [np.array(combination) for combination in combinations_list]
 
 # Convert the list of arrays into a NumPy array

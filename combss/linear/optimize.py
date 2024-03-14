@@ -16,14 +16,14 @@ def t_to_w(t):
 	"""
 	Function to convert t to w, and it is used in converting box-constraint problem to an unconstraint one.
 	"""
-	w = np.sqrt(-np.log(1 - t))
+	w = np.log(t/(1-t))
 	return w
 
 def w_to_t(w):
 	"""
 	Function to convert w to t, and it is used in converting solution of the unconstraint problem to the constrained case.
 	"""  
-	t = 1 - np.exp(-w*w)
+	t = 1/(1+np.exp(-w))
 	return t
 
 def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
@@ -468,7 +468,7 @@ def cg_f0(t):
 		
 		## Constructing gradient
 		grad = 2*(beta*(a - d) - (b*c))
-
+		
 	return grad
 
 ### 
@@ -569,13 +569,17 @@ def v1_grad(i):
 	third_element = sp_X.T @ sp_y
 
 	gradt = np.multiply(2/n*beta, first_element - second_element + third_element)
-	grad[:p] = gradt
+	gradt_flatten = gradt.flatten()
+	grad[:p] = gradt_flatten
+	# grad[:p] = gradt
 
 	middle_element = np.multiply(t, sp_X.T @ sp_y)
 	last_element = sp_delta*np.multiply(t, np.multiply(t, beta))
 
 	gradbeta = 2/n * (np.multiply(t, first_element) - middle_element + sp_delta*beta - last_element)
-	grad[-p:] = gradbeta
+	gradbeta_flatten = gradbeta.flatten()
+	grad[-p:] = gradbeta_flatten
+	# grad[-p:] = gradbeta
 	return grad
 
 def v1_scipy_combss(X, y, t_init, k, delta_frac = 1):

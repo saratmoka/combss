@@ -67,7 +67,8 @@ br_result = optimize.BR_combss(X_train, y_train, t_init=t_init[0], k = 5, delta_
 
 print(f"Raw BR Result Indicies: {br_result}\n")
 
-result = np.where(br_result > 0.75, 1, 0)
+# TODO: Note that the sensitivity for k=5 is weak"
+result = np.where(br_result > 0.9, 1, 0)
 result_indices = np.where(result == 1)[0]
 
 result_MSE = calculate_MSE(n, X_train, y_train, result_indices)
