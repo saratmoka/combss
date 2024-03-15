@@ -34,6 +34,7 @@ metrics = ['MSE', 'PE', 'MCC', 'Accuracy', 'Sensitivity', 'Specificity', 'F1_sco
 names = metrics + [ str(i) for i in range(p)] 
 
 nmetrics = len(metrics)
+print(nmetrics)
 
 bulk_results = np.zeros((1, len(names)))
 
@@ -92,6 +93,7 @@ else:
 	print("Error: wrong case!")
 	
 result2 = metric.performance_metrics(X_train, beta_true, beta_pred)
+print(result2)
 bulk_results[0, 1: nmetrics-2] = np.array(result2)
 	
 df = pd.DataFrame(bulk_results, columns = names)
