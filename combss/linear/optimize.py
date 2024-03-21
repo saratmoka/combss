@@ -639,6 +639,24 @@ def v1_scipy_combss(X, y, t_init, k, delta_frac = 1):
 
 	return result.x
 
+def grad_v1_t(X, t, beta, delta, y):
+	n = y.shape[0]
+	b_mult_t = np.multiply(beta, t)
+	bracket_term = X.T@(X@b_mult_t) - delta*b_mult_t - X.T@y
+	return (2/n)*np.multiply(beta,bracket_term)
+
+def grad_v1_w(X, t, beta, delta, y, w):
+	grad_t = grad_v1_t(X, t, beta, delta, y)
+	sigmoid_w = w_to_t(w)
+	second_term = sigmoid_w*(1-sigmoid_w)
+	return np.multiply(grad_t, second_term)
+
+def grad_v1_beta(X, t, beta, delta, y):
+	n = y.shape[0]
+	b_mult_t = np.multiply(beta, t)
+	XTy = X.T@y
+	bracket_term = X.T@(X@b_mult_t) - np.multiply(t,XTy) + delta*beta - delta*np.multiply(t,b_mult_t)
+	return (2/n)*np.multiply(t, bracket_term)
 
 def combss_dynamic(X, y, 
 				   q = None,
