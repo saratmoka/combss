@@ -480,10 +480,10 @@ def BR_combss(X, y, t_init, k, delta_frac = 1):
 
 	## One time operations
 	global sp_X
-	sp_X = X
+	sp_X = X.copy()
 
 	global sp_y
-	sp_y = y    
+	sp_y = y.copy()    
 	(n, p) = X.shape
 
 	global sp_c 
@@ -593,10 +593,10 @@ def v1_scipy_combss(X, y, t_init, k, delta_frac = 1):
 
 	## One time operations
 	global sp_X
-	sp_X = X
+	sp_X = X.copy()
 
 	global sp_y
-	sp_y = y    
+	sp_y = y.copy()   
 	(n, p) = X.shape
 
 	global sp_c 
@@ -658,18 +658,22 @@ def grad_v1_beta(X, t, beta, delta, y):
 	bracket_term = X.T@(X@b_mult_t) - np.multiply(t,XTy) + delta*beta - delta*np.multiply(t,b_mult_t)
 	return (2/n)*np.multiply(t, bracket_term)
 
-def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-2, tau = 0.5):
+def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5):
+	# To compensate for data types fed into Adam, otherwise the output will be of incorrect dimension.
+	y = np.reshape(y,(-1,1))
 
 	# Initialising Adam-related variables
 	i = 0
-	v = 0
-	u = 0
+	v_beta, v_w, u_beta, u_w = 0, 0, 0, 0
+	v_betas, v_ws, u_betas, u_ws = 0, 0, 0, 0
+
 	stop = False
 	converge = False
 
 	# Initialising data-related variables
 	delta = X.shape[0]
 	p = X.shape[1]
+	
 	beta_new = np.random.randn(p,1)
 	w_new = np.zeros((p,1))
 
@@ -679,25 +683,34 @@ def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxite
 		w_curr = w_new.copy()
 		t_curr = w_to_t(w_curr)
 
-
 		# Perform updates for beta
 		gradbeta = grad_v1_beta(X, t_curr, beta_curr, delta, y)
 
-		v = gam1*v + (1 - gam1)*gradbeta
+		v_beta = gam1*v_beta + (1 - gam1)*gradbeta
+		u_beta = gam2*u_beta + (1 - gam2)*np.multiply(gradbeta, gradbeta)
 
-		u = gam2*u + (1 - gam2)*np.multiply(gradbeta, gradbeta)
-		v = v/(1-gam1**(i+1))
-		u = u/(1-gam2**(i+1))
-		beta_new = beta_curr - alpha*v/(np.sqrt(u + epsilon))
+		print(f"v beta: {v_beta}")
+		print(f"u beta: {u_beta}")
+		
+		v_betas = v_beta/(1-gam1**(i+1))
+		u_betas = u_beta/(1-gam2**(i+1))
+
+		print(f"v betas: {v_betas}")
+		print(f"u betas: {u_betas}")
+
+		beta_new = beta_curr - alpha*v_betas/(np.sqrt(u_betas + epsilon))
+		print(f"Delta beta: {beta_new - beta_curr}")
 
 		# Perform updates for w
 		gradw = grad_v1_w(X, t_curr, beta_curr, delta, y, w_curr)
-		v = gam1*v + (1 - gam1)*gradw
-		u = gam2*u + (1 - gam2)*np.multiply(gradw, gradw)
-		v = v/(1-gam1**(i+1))
-		u = u/(1-gam2**(i+1))
+		v_w = gam1*v_w + (1 - gam1)*gradw
+		u_w = gam2*u_w + (1 - gam2)*np.multiply(gradw, gradw)
+		v_ws = v_w/(1-gam1**(i+1))
+		u_ws = u_w/(1-gam2**(i+1))
+		print(f"Delta w: {w_new - w_curr}")
 
-		w_new = w_curr - alpha*v/(np.sqrt(u + epsilon))
+
+		w_new = w_curr - alpha*v_ws/(np.sqrt(u_ws + epsilon))
 		t_new = w_to_t(w_new)
 
 		# Assess stopping conditions
@@ -726,7 +739,7 @@ def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxite
 	if i + 1 < maxiter:
 		converge = True
 	
-	return t_new, model, converge, i+1
+	return beta_new, t_new, model, converge, i+1
 
 def combss_dynamic(X, y, 
 				   q = None,
