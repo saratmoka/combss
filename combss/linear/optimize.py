@@ -698,7 +698,7 @@ def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxite
 		print(f"v betas: {v_betas}")
 		print(f"u betas: {u_betas}")
 
-		beta_new = beta_curr - alpha*v_betas/(np.sqrt(u_betas + epsilon))
+		beta_new = beta_curr - alpha*v_betas/(np.sqrt(u_betas) + epsilon)
 		print(f"Delta beta: {beta_new - beta_curr}")
 
 		# Perform updates for w
@@ -710,7 +710,7 @@ def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxite
 		print(f"Delta w: {w_new - w_curr}")
 
 
-		w_new = w_curr - alpha*v_ws/(np.sqrt(u_ws + epsilon))
+		w_new = w_curr - alpha*v_ws/(np.sqrt(u_ws) + epsilon)
 		t_new = w_to_t(w_new)
 
 		# Assess stopping conditions
