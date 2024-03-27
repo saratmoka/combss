@@ -658,6 +658,76 @@ def grad_v1_beta(X, t, beta, delta, y):
 	bracket_term = X.T@(X@b_mult_t) - np.multiply(t,XTy) + delta*beta - delta*np.multiply(t,b_mult_t)
 	return (2/n)*np.multiply(t, bracket_term)
 
+def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-2, tau = 0.5):
+
+	# Initialising Adam-related variables
+	i = 0
+	v = 0
+	u = 0
+	stop = False
+	converge = False
+
+	# Initialising data-related variables
+	delta = X.shape[0]
+	p = X.shape[1]
+	beta_new = np.random.randn(p,1)
+	w_new = np.zeros((p,1))
+
+	while not stop:
+		# Initialisation parameters
+		beta_curr = beta_new.copy()
+		w_curr = w_new.copy()
+		t_curr = w_to_t(w_curr)
+
+
+		# Perform updates for beta
+		gradbeta = grad_v1_beta(X, t_curr, beta_curr, delta, y)
+
+		v = gam1*v + (1 - gam1)*gradbeta
+
+		u = gam2*u + (1 - gam2)*np.multiply(gradbeta, gradbeta)
+		v = v/(1-gam1**(i+1))
+		u = u/(1-gam2**(i+1))
+		beta_new = beta_curr - alpha*v/(np.sqrt(u + epsilon))
+
+		# Perform updates for w
+		gradw = grad_v1_w(X, t_curr, beta_curr, delta, y, w_curr)
+		v = gam1*v + (1 - gam1)*gradw
+		u = gam2*u + (1 - gam2)*np.multiply(gradw, gradw)
+		v = v/(1-gam1**(i+1))
+		u = u/(1-gam2**(i+1))
+
+		w_new = w_curr - alpha*v/(np.sqrt(u + epsilon))
+		t_new = w_to_t(w_new)
+
+		# Assess stopping conditions
+		if (i > maxiter):
+			stop = True
+		else:
+			delta_beta = np.linalg.norm((beta_new - beta_curr),2)
+			delta_t =  np.linalg.norm((t_new - t_curr),2)
+			if ((delta_beta + delta_t) < tol):
+				gradbeta_new = grad_v1_beta(X, t_curr, beta_new, delta, y)
+				gradbeta_curr = grad_v1_beta(X, t_curr, beta_curr, delta, y)
+
+				gradw_new = grad_v1_w(X, t_new, beta_curr, delta, y, w_new)
+				gradw_curr = grad_v1_w(X, t_curr, beta_curr, delta, y, w_curr)
+
+				delta_gradbeta = np.linalg.norm((gradbeta_new - gradbeta_curr),2)
+				delta_gradt = np.linalg.norm((gradw_new - gradw_curr),2)
+				if (delta_gradbeta + delta_gradt < tol):
+					stop = True
+		
+		# Iterate through counter
+		i = i + 1
+	
+	model = np.where(t_new > tau)[0]
+
+	if i + 1 < maxiter:
+		converge = True
+	
+	return t_new, model, converge, i+1
+
 def combss_dynamic(X, y, 
 				   q = None,
 				   nlam = None,
