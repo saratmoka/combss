@@ -658,7 +658,7 @@ def grad_v1_beta(X, t, beta, delta, y):
 	bracket_term = X.T@(X@b_mult_t) - np.multiply(t,XTy) + delta*beta - delta*np.multiply(t,b_mult_t)
 	return (2/n)*np.multiply(t, bracket_term)
 
-def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5):
+def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-3, tau = 0.5):
 	# To compensate for data types fed into Adam, otherwise the output will be of incorrect dimension.
 	y = np.reshape(y,(-1,1))
 
@@ -728,7 +728,7 @@ def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxite
 
 				delta_gradbeta = np.linalg.norm((gradbeta_new - gradbeta_curr),2)
 				delta_gradt = np.linalg.norm((gradw_new - gradw_curr),2)
-				if (delta_gradbeta + delta_gradt < tol):
+				if ((delta_gradbeta + delta_gradt) < tol):
 					stop = True
 		
 		# Iterate through counter
