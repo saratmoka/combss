@@ -185,7 +185,8 @@ def ADAM_combss(X, y,  lam, t_init,
 		w_trun = w[M]
 		grad_trun = 2*grad_trun*(w_trun*np.exp(- w_trun*w_trun))
 		
-		## ADAM Updates
+		# NOTE: below should be a plus, not minus
+		## ADAM Updates 
 		u = xi1*u[M_trun] - (1 - xi1)*grad_trun
 		v = xi2*v[M_trun] + (1 - xi2)*(grad_trun*grad_trun) 
 	
@@ -658,23 +659,25 @@ def grad_v1_beta(X, t, beta, delta, y):
 	bracket_term = X.T@(X@b_mult_t) - np.multiply(t,XTy) + delta*beta - delta*np.multiply(t,b_mult_t)
 	return (2/n)*np.multiply(t, bracket_term)
 
-def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-3, tau = 0.5):
+def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5):
 	# To compensate for data types fed into Adam, otherwise the output will be of incorrect dimension.
 	y = np.reshape(y,(-1,1))
-
-	# Initialising Adam-related variables
-	i = 0
-	v_beta, v_w, u_beta, u_w = 0, 0, 0, 0
-	v_betas, v_ws, u_betas, u_ws = 0, 0, 0, 0
-
-	stop = False
-	converge = False
 
 	# Initialising data-related variables
 	delta = X.shape[0]
 	p = X.shape[1]
-	
-	beta_new = np.random.randn(p,1)
+
+	# Initialising Adam-related variables
+	i = 0
+	v_beta, v_w, u_beta, u_w = np.zeros((p,1)), np.zeros((p,1)), np.zeros((p,1)), np.zeros((p,1))
+	v_betas, v_ws, u_betas, u_ws = np.zeros((p,1)), np.zeros((p,1)), np.zeros((p,1)), np.zeros((p,1))
+
+	stop = False
+	converge = False
+
+	# beta_new = np.random.randn(p,1)
+	# beta_new = np.ones((p,1))
+	beta_new = 1/2*np.ones((p,1))
 	w_new = np.zeros((p,1))
 
 	while not stop:
@@ -685,21 +688,11 @@ def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxite
 
 		# Perform updates for beta
 		gradbeta = grad_v1_beta(X, t_curr, beta_curr, delta, y)
-
 		v_beta = gam1*v_beta + (1 - gam1)*gradbeta
 		u_beta = gam2*u_beta + (1 - gam2)*np.multiply(gradbeta, gradbeta)
-
-		print(f"v beta: {v_beta}")
-		print(f"u beta: {u_beta}")
-		
 		v_betas = v_beta/(1-gam1**(i+1))
 		u_betas = u_beta/(1-gam2**(i+1))
-
-		print(f"v betas: {v_betas}")
-		print(f"u betas: {u_betas}")
-
-		beta_new = beta_curr - alpha*v_betas/(np.sqrt(u_betas) + epsilon)
-		print(f"Delta beta: {beta_new - beta_curr}")
+		beta_new = beta_curr - alpha*np.divide(v_betas,(np.sqrt(u_betas) + epsilon))
 
 		# Perform updates for w
 		gradw = grad_v1_w(X, t_curr, beta_curr, delta, y, w_curr)
@@ -707,11 +700,17 @@ def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxite
 		u_w = gam2*u_w + (1 - gam2)*np.multiply(gradw, gradw)
 		v_ws = v_w/(1-gam1**(i+1))
 		u_ws = u_w/(1-gam2**(i+1))
-		print(f"Delta w: {w_new - w_curr}")
-
-
-		w_new = w_curr - alpha*v_ws/(np.sqrt(u_ws) + epsilon)
+		w_new = w_curr - alpha*np.divide(v_ws,(np.sqrt(u_ws) + epsilon))
 		t_new = w_to_t(w_new)
+
+		'''
+		print(f"v beta: {v_beta}")
+		print(f"u beta: {u_beta}")
+		print(f"v betas: {v_betas}")
+		print(f"u betas: {u_betas}")
+		print(f"Delta beta: {beta_new - beta_curr}")
+		print(f"Delta w: {w_new - w_curr}")
+		'''
 
 		# Assess stopping conditions
 		if (i > maxiter):
@@ -738,6 +737,12 @@ def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxite
 
 	if i + 1 < maxiter:
 		converge = True
+
+	print(f"Final Adam Beta: {beta_new}")
+	print(f"Final Adam t: {t_new}")
+	print(f"Final Adam model: {model}")
+	print(f"Final Adam convergence: {converge}")
+	print(f"Final iterations: {i}")
 	
 	return beta_new, t_new, model, converge, i+1
 

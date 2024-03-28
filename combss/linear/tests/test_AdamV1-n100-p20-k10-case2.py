@@ -27,7 +27,7 @@ corr = 0.8
 
 n = 100
 mean = [5]*20
-noise_var = 0.2
+noise_var = 0
 
 beta0, true_model = data_gen.gen_beta0(p, k0, case)
 cov = data_gen.cov_X(p, corr)
@@ -41,10 +41,12 @@ print(f"X: {X}")
 print(f"y: {y}")
 
 
-adam_results = optimize.adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-2, tau = 0.5)
+adam_res = optimize.adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e8, tol = 1e-2, tau = 0.5)
 
-print(f"True beta: {beta0}")
-print(f"True model: {true_model}")
+beta_pred = adam_res[0]
+t_pred = adam_res[1]
+model_pred = adam_res[2]
+converge = adam_res[3]
+i = adam_res[4]
 
-print(f"Adam beta: {adam_results[0]}")
-print(f"Adam model: {adam_results[2]}")
+print(f"Final Result: Adam Result Indicies: {model_pred}\n")
