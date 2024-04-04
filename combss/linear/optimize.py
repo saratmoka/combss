@@ -642,65 +642,68 @@ def v1_scipy_combss(X, y, t_init, k, delta_frac = 1):
 
 def grad_v1_t(X, t, beta, delta, y):
 	n = y.shape[0]
-	b_mult_t = np.multiply(beta, t)
+	b_mult_t = beta*t
 	bracket_term = X.T@(X@b_mult_t) - delta*b_mult_t - X.T@y
-	return (2/n)*np.multiply(beta,bracket_term)
+	return (2/n)*beta*bracket_term
 
-def grad_v1_w(X, t, beta, delta, y, w):
-	grad_t = grad_v1_t(X, t, beta, delta, y)
+def grad_v1_w(X, t, beta, delta, lam, y, w):
+	grad_t = grad_v1_t(X, t, beta, delta, y) + lam
 	sigmoid_w = w_to_t(w)
 	second_term = sigmoid_w*(1-sigmoid_w)
-	return np.multiply(grad_t, second_term)
+	return grad_t*second_term
 
 def grad_v1_beta(X, t, beta, delta, y):
 	n = y.shape[0]
-	b_mult_t = np.multiply(beta, t)
-	XTy = X.T@y
-	bracket_term = X.T@(X@b_mult_t) - np.multiply(t,XTy) + delta*beta - delta*np.multiply(t,b_mult_t)
-	return (2/n)*np.multiply(t, bracket_term)
+	b_mult_t = beta*t
+	temp = t*(X.T@(X@b_mult_t) - X.T@y - delta*b_mult_t) + delta*beta 
+	return (2/n)*temp
 
-def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5):
+def adam_v1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5):
 	# To compensate for data types fed into Adam, otherwise the output will be of incorrect dimension.
-	y = np.reshape(y,(-1,1))
+	#y = np.reshape(y, (-1,1))
 
 	# Initialising data-related variables
-	delta = X.shape[0]
-	p = X.shape[1]
-
+	(n, p) = X.shape 
+	delta = n
+	
 	# Initialising Adam-related variables
 	i = 0
-	v_beta, v_w, u_beta, u_w = np.zeros((p,1)), np.zeros((p,1)), np.zeros((p,1)), np.zeros((p,1))
-	v_betas, v_ws, u_betas, u_ws = np.zeros((p,1)), np.zeros((p,1)), np.zeros((p,1)), np.zeros((p,1))
-
+	v_beta, v_w, u_beta, u_w = np.zeros(p), np.zeros(p), np.zeros(p), np.zeros(p)
+	
 	stop = False
 	converge = False
-
-	# beta_new = np.random.randn(p,1)
-	# beta_new = np.ones((p,1))
-	beta_new = 1/2*np.ones((p,1))
-	w_new = np.zeros((p,1))
+	beta_seq = []
+	t_seq = []
+	
+	beta_new = np.random.randn(p)
+	# beta_new = 0*np.ones(p)
+	w_new = np.zeros(p)
 
 	while not stop:
+		
 		# Initialisation parameters
 		beta_curr = beta_new.copy()
 		w_curr = w_new.copy()
 		t_curr = w_to_t(w_curr)
+		
+		beta_seq.append(beta_curr.copy())
+		t_seq.append(t_curr.copy())
 
 		# Perform updates for beta
 		gradbeta = grad_v1_beta(X, t_curr, beta_curr, delta, y)
 		v_beta = gam1*v_beta + (1 - gam1)*gradbeta
-		u_beta = gam2*u_beta + (1 - gam2)*np.multiply(gradbeta, gradbeta)
+		u_beta = gam2*u_beta + (1 - gam2)*(gradbeta*gradbeta)
 		v_betas = v_beta/(1-gam1**(i+1))
 		u_betas = u_beta/(1-gam2**(i+1))
-		beta_new = beta_curr - alpha*np.divide(v_betas,(np.sqrt(u_betas) + epsilon))
+		beta_new = beta_curr - alpha*np.divide(v_betas, (np.sqrt(u_betas) + epsilon))
 
 		# Perform updates for w
-		gradw = grad_v1_w(X, t_curr, beta_curr, delta, y, w_curr)
+		gradw = grad_v1_w(X, t_curr, beta_curr, delta, lam, y, w_curr)
 		v_w = gam1*v_w + (1 - gam1)*gradw
-		u_w = gam2*u_w + (1 - gam2)*np.multiply(gradw, gradw)
+		u_w = gam2*u_w + (1 - gam2)*(gradw*gradw)
 		v_ws = v_w/(1-gam1**(i+1))
 		u_ws = u_w/(1-gam2**(i+1))
-		w_new = w_curr - alpha*np.divide(v_ws,(np.sqrt(u_ws) + epsilon))
+		w_new = w_curr - alpha*np.divide(v_ws, (np.sqrt(u_ws) + epsilon))
 		t_new = w_to_t(w_new)
 
 		'''
@@ -716,18 +719,18 @@ def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxite
 		if (i > maxiter):
 			stop = True
 		else:
-			delta_beta = np.linalg.norm((beta_new - beta_curr),2)
-			delta_t =  np.linalg.norm((t_new - t_curr),2)
-			if ((delta_beta + delta_t) < tol):
+			diff_beta = np.linalg.norm((beta_new - beta_curr), 2)
+			diff_t =  np.linalg.norm((t_new - t_curr), 2)
+			if ((diff_beta + diff_t) < tol):
 				gradbeta_new = grad_v1_beta(X, t_curr, beta_new, delta, y)
 				gradbeta_curr = grad_v1_beta(X, t_curr, beta_curr, delta, y)
 
-				gradw_new = grad_v1_w(X, t_new, beta_curr, delta, y, w_new)
-				gradw_curr = grad_v1_w(X, t_curr, beta_curr, delta, y, w_curr)
+				gradw_new = grad_v1_w(X, lam, t_new, beta_curr, delta, y, w_new)
+				gradw_curr = grad_v1_w(X, lam, t_curr, beta_curr, delta, y, w_curr)
 
-				delta_gradbeta = np.linalg.norm((gradbeta_new - gradbeta_curr),2)
-				delta_gradt = np.linalg.norm((gradw_new - gradw_curr),2)
-				if ((delta_gradbeta + delta_gradt) < tol):
+				diff_gradbeta = np.linalg.norm((gradbeta_new - gradbeta_curr),2)
+				diff_gradt = np.linalg.norm((gradw_new - gradw_curr),2)
+				if ((diff_gradbeta + diff_gradt) < tol):
 					stop = True
 		
 		# Iterate through counter
@@ -743,8 +746,71 @@ def adam_v1(X, y, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxite
 	print(f"Final Adam model: {model}")
 	print(f"Final Adam convergence: {converge}")
 	print(f"Final iterations: {i}")
+	print(f"Beta sequence: {beta_seq}")
+	print(f"t sequence: {t_seq}")
 	
-	return beta_new, t_new, model, converge, i+1
+	return beta_new, t_new, model, converge, i+1, beta_seq, t_seq
+
+def adam_w(X, y, beta, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5):
+	# To compensate for data types fed into Adam, otherwise the output will be of incorrect dimension.
+	#y = np.reshape(y, (-1,1))
+
+	# Initialising data-related variables
+	(n, p) = X.shape 
+	delta = n
+	
+	# Initialising Adam-related variables
+	i = 0
+	v_w, u_w = np.zeros(p), np.zeros(p)
+	
+	stop = False
+	converge = False
+	t_seq = []
+	w_seq = []
+	
+	w_new = np.zeros(p)
+
+	while not stop:
+		
+		# Initialisation parameters
+		w_curr = w_new.copy()
+		t_curr = w_to_t(w_curr)
+		
+		t_seq.append(t_curr.copy())
+		w_seq.append(w_curr.copy())
+
+
+		# Perform updates for w
+		gradw = grad_v1_w(X, t_curr, beta, delta, lam, y, w_curr)
+		v_w = gam1*v_w + (1 - gam1)*gradw
+		u_w = gam2*u_w + (1 - gam2)*(gradw*gradw)
+		v_ws = v_w/(1-gam1**(i+1))
+		u_ws = u_w/(1-gam2**(i+1))
+		w_new = w_curr - alpha*np.divide(v_ws, (np.sqrt(u_ws) + epsilon))
+		t_new = w_to_t(w_new)
+
+		# Assess stopping conditions
+		if (i > maxiter):
+			stop = True
+		else:
+			diff_t = np.linalg.norm((t_new- t_curr), 2)
+			if (diff_t < tol):
+				gradt_new = grad_v1_t(X, t_new, beta, delta, y)
+				gradt_curr = grad_v1_t(X, t_curr, beta, delta, y)
+
+				diff_gradt = np.linalg.norm((gradt_new - gradt_curr),2)
+				if (diff_gradt < tol):
+					stop = True
+		
+		# Iterate through counter
+		i = i + 1
+	
+	model = np.where(t_new > tau)[0]
+
+	if i + 1 < maxiter:
+		converge = True
+	
+	return w_new, t_new, model, converge, i+1, t_seq, w_seq
 
 def combss_dynamic(X, y, 
 				   q = None,
