@@ -85,7 +85,7 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 		else: 
 			print("Error: wrong case!")
 			
-		result2 = metric.performance_metrics(X_train, beta_true, beta_pred)
+		result2 = metric.performance_metrics(X_test, beta_true, beta_pred)
 		bulk_results[j, 1: nmetrics-2] = np.array(result2)
 		
 	df = pd.DataFrame(bulk_results, columns = names)
@@ -166,7 +166,7 @@ def bulk_simV1(n, p, q, beta_type, K0, snr, corr,
 		else: 
 			print("Error: wrong case!")
 			
-		result2 = metric.performance_metrics(X_train, beta_true, beta_pred)
+		result2 = metric.performance_metrics(X_test, beta_true, beta_pred)
 		bulk_results[j, 1: nmetrics-2] = np.array(result2)
 		
 	df = pd.DataFrame(bulk_results, columns = names)
