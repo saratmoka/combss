@@ -30,7 +30,7 @@ case = 2
 corr = 0.8
 
 n = 100
-mean = 10*np.ones(20)
+mean = 1*np.ones(20)
 noise_var = 0.2
 
 beta0, true_model = data_gen.gen_beta0(p, k0, case)
@@ -43,6 +43,8 @@ y = data[1]
 
 #%%
 lam = 0
+lam_max = 1/n*np.linalg.norm(y, 2)
+print(lam_max)
 adam_res = optimize.adam_v1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.001, epsilon = 10e-8, maxiter = 1e5, tol = 1e-5, tau = 0.5)
 
 #%%

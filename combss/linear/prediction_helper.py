@@ -776,7 +776,7 @@ def combss(X_train, y_train, X_test, y_test,
 
 '''
 #%%
-""" 
+"""
 Function for running COMBSS on several datasets and 
 save the corresponding results in a file
 """
@@ -859,7 +859,6 @@ def bulk_sim_given_data(n, p, q, beta_type, K0, snr, corr,
     df.to_csv("../RESULT-PRED/COMBSS-nLAM/COMBSS-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 
     return df
-
 '''
 
 

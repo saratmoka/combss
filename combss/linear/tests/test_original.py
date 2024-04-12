@@ -58,7 +58,7 @@ if n_tinit == 0:
 	t_init = [np.ones(p)*0.5]
 	n_tinit = 1
 
-result1 = optimize.combss(X_train, y_train, X_test, y_test, t_init=t_init[0], 
+result1 = optimize.combssV0(X_train, y_train, X_test, y_test, t_init=t_init[0], 
 				delta_frac=delta_frac,  q = q, nlam = nlam, eta=eta)
 """
 Note that,
@@ -68,7 +68,7 @@ running_time += result1[4]
 
 for i in range(n_tinit-1):
 	
-	result_temp = optimize.combss(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
+	result_temp = optimize.combssV0(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
 							delta_frac=delta_frac, q = q, nlam = nlam, eta=eta)
 	
 	running_time += result_temp[4]
