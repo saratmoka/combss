@@ -181,11 +181,11 @@ def ADAM_combss(X, y,  lam, t_init,
 		## Compute gradient for the effective terms
 		grad_trun, beta_trun, c, g1, g2 = f_grad_cg(t_trun, X, y, XX, Xy, Z, lam, delta, beta_trun[M_trun],  c[M_trun], g1, g2)
 		w_trun = w[M]
-		grad_trun = 2*grad_trun*(w_trun*np.exp(- w_trun*w_trun))
+		grad_trun = grad_trun*(w_to_t(w_trun)*(1-w_to_t(w_trun)))
 		
 		# NOTE: below should be a plus, not minus
 		## ADAM Updates 
-		u = xi1*u[M_trun] - (1 - xi1)*grad_trun
+		u = xi1*u[M_trun] + (1 - xi1)*grad_trun
 		v = xi2*v[M_trun] + (1 - xi2)*(grad_trun*grad_trun) 
 	
 		u_hat = u/(1 - xi1**(l+1))
@@ -609,6 +609,7 @@ def combss_dynamicV0(X, y,
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	while not stop:
 		t_final, model, converge, _ = ADAM_combss(X, y, lam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter=gd_maxiter,gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
+		print(f'first pass t: {t_final}')
 
 		len_model = model.shape[0]
 
@@ -644,9 +645,9 @@ def combss_dynamicV0(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				
 				t_final, model, converge, _ = ADAM_combss(X, y, lam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter=gd_maxiter,gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
-				
+				print(f'second pass t: {t_final}')
+
 				len_model = model.shape[0]
 
 				lam_list.append(lam)
@@ -730,6 +731,7 @@ def combss_dynamicV1(X, y,
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	while not stop:
 		t_final, model, converge, _, _, _ = ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
+		print(f'first pass t: {t_final}')
 
 		len_model = model.shape[0]
 
@@ -766,7 +768,8 @@ def combss_dynamicV1(X, y,
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
 				t_final, model, converge,_ ,_ ,_= ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
-				
+				print(f'second pass t: {t_final}')
+
 				len_model = model.shape[0]
 
 				lam_list.append(lam)
@@ -823,7 +826,6 @@ def combssV0(X_train, y_train, X_test, y_test,
 	(model_list, lam_list) = combss_dynamicV0(X_train, y_train, q = q, nlam = nlam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter= gd_maxiter, gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
 	toc = time.process_time()
 	#print('Dynamic combss is completed')
-
 	# t_arr = np.array(t_list)
 	
 	"""

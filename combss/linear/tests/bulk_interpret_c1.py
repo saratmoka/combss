@@ -125,11 +125,12 @@ for snr in snr_res.values():
 
 #%%
 # Plot MSE
-plt.plot(snr_list, mseV0, marker='x')
-plt.plot(snr_list, mseV1, marker='x')
+combssv0, = plt.plot(snr_list, mseV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, mseV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('MSE')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
@@ -185,22 +186,5 @@ plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Specificity')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # %%

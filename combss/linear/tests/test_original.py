@@ -22,12 +22,12 @@ import metric, optimize
 t_init= []
 delta_frac = 1
 n = 100
-p = 20
-snr = 1
+p = 1000
+snr = 4
 nlam = 100
 eta = 0.001
 case = 1
-q = 20
+q = 100
 corr = 0.8
 
 metrics = ['MSE', 'PE', 'MCC', 'Accuracy', 'Sensitivity', 'Specificity', 'F1_score', 'Precision', 'Time', 'Opt Lambda']
@@ -39,13 +39,13 @@ bulk_results = np.zeros((1, len(names)))
 
 dir = os.getcwd()
 # path_train = '../n-%s-p%sSNR-%s.csv' %(n,p,snr)
-path_train = dir + '/n-100-p20SNR-1Train.csv'
+path_train = dir + '/n-100-p1000SNR-4Train.csv'
 df = pd.read_csv(path_train, sep='\t', header=None)
 data = df.to_numpy()
 y_train = data[:, 0]
 X_train = data[:, 1:]
 
-path_test = dir + '/n-100-p20SNR-1Test.csv'
+path_test = dir + '/n-100-p1000SNR-4Test.csv'
 df = pd.read_csv(path_test, sep='\t', header=None)
 data = df.to_numpy()
 y_test = data[:, 0]

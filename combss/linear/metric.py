@@ -24,8 +24,8 @@ def performance_metrics(data_X, beta_true, beta_pred):
     
     if (sum(s_pred) == 0):
         pe = 1
-        precision = 0
-        MCC = 0
+        precision = 'NA'
+        MCC = 'NA'
     else:
         Xbeta_true = data_X@beta_true
         pe = np.square(Xbeta_true - data_X@beta_pred).mean()/np.square(Xbeta_true).mean()        
