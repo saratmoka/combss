@@ -181,9 +181,8 @@ def ADAM_combss(X, y,  lam, t_init,
 		## Compute gradient for the effective terms
 		grad_trun, beta_trun, c, g1, g2 = f_grad_cg(t_trun, X, y, XX, Xy, Z, lam, delta, beta_trun[M_trun],  c[M_trun], g1, g2)
 		w_trun = w[M]
-		grad_trun = grad_trun*(w_to_t(w_trun)*(1-w_to_t(w_trun)))
+		grad_trun = grad_trun*(w_to_t(w_trun)*(1 - w_to_t(w_trun)))
 		
-		# NOTE: below should be a plus, not minus
 		## ADAM Updates 
 		u = xi1*u[M_trun] + (1 - xi1)*grad_trun
 		v = xi2*v[M_trun] + (1 - xi2)*(grad_trun*grad_trun) 
@@ -191,7 +190,7 @@ def ADAM_combss(X, y,  lam, t_init,
 		u_hat = u/(1 - xi1**(l+1))
 		v_hat = v/(1 - xi2**(l+1))
 		
-		w_trun = w_trun + alpha*np.divide(u_hat, epsilon + np.sqrt(v_hat)) 
+		w_trun = w_trun - alpha*np.divide(u_hat, epsilon + np.sqrt(v_hat)) 
 		w[M] = w_trun
 		t[M] = w_to_t(w_trun)
 		
@@ -433,15 +432,6 @@ def ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10
 		w_new = w_curr - alpha*np.divide(v_ws, (np.sqrt(u_ws) + epsilon))
 		t_new = w_to_t(w_new)
 
-		'''
-		print(f"v beta: {v_beta}")
-		print(f"u beta: {u_beta}")
-		print(f"v betas: {v_betas}")
-		print(f"u betas: {u_betas}")
-		print(f"Delta beta: {beta_new - beta_curr}")
-		print(f"Delta w: {w_new - w_curr}")
-		'''
-
 		# Assess stopping conditions
 		if (i > maxiter):
 			stop = True
@@ -468,16 +458,6 @@ def ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10
 	if i + 1 < maxiter:
 		converge = True
 	
-	'''
-	print(f"Final Adam Beta: {beta_new}")
-	print(f"Final Adam t: {t_new}")
-	print(f"Final Adam model: {model}")
-	print(f"Final Adam convergence: {converge}")
-	print(f"Final iterations: {i}")
-	'''
-	
-	# print(f"Beta sequence: {beta_seq}")
-	# print(f"t sequence: {t_seq}")
 	
 	return t_new, model, converge, i+1, beta_seq, t_seq
 
@@ -609,7 +589,6 @@ def combss_dynamicV0(X, y,
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	while not stop:
 		t_final, model, converge, _ = ADAM_combss(X, y, lam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter=gd_maxiter,gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
-		print(f'first pass t: {t_final}')
 
 		len_model = model.shape[0]
 
@@ -646,7 +625,6 @@ def combss_dynamicV0(X, y,
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
 				t_final, model, converge, _ = ADAM_combss(X, y, lam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter=gd_maxiter,gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
-				print(f'second pass t: {t_final}')
 
 				len_model = model.shape[0]
 
