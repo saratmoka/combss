@@ -130,56 +130,62 @@ plt.show()
 
 #%%
 # Plot Prediction Error
-plt.plot(snr_list, peV0, marker='x')
-plt.plot(snr_list, peV1, marker='x')
+combssv0, = plt.plot(snr_list, peV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, peV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
-plt.ylabel('Prediction Error')
+plt.ylabel('Prediciton Error')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
 # Plot MCC
-plt.plot(snr_list, mccV0, marker='x')
-plt.plot(snr_list, mccV1, marker='x')
+combssv0, = plt.plot(snr_list, mccV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, mccV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('MCC')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
 # Plot Accuracy
-plt.plot(snr_list, accuracyV0, marker='x')
-plt.plot(snr_list, accuracyV1, marker='x')
+combssv0, = plt.plot(snr_list, accuracyV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, accuracyV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Accuracy')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
 # Plot F1 Score
-plt.plot(snr_list, f1V0, marker='x')
-plt.plot(snr_list, f1V1, marker='x')
+combssv0, = plt.plot(snr_list, f1V0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, f1V1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('F1 Score')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
 # Plot Sensitivity
-plt.plot(snr_list, sensitivityV0, marker='x')
-plt.plot(snr_list, sensitivityV1, marker='x')
+combssv0, = plt.plot(snr_list, sensitivityV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, sensitivityV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Sensitivity')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
 # Plot Specificity
-plt.plot(snr_list, specificityV0, marker='x')
-plt.plot(snr_list, specificityV1, marker='x')
+combssv0, = plt.plot(snr_list, specificityV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, specificityV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Specificity')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 # %%
@@ -301,56 +307,62 @@ plt.show()
 
 #%%
 # Plot Prediction Error
-plt.plot(snr_list, peV0, marker='x')
-plt.plot(snr_list, peV1, marker='x')
+combssv0, = plt.plot(snr_list, peV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, peV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
-plt.ylabel('Prediction Error')
+plt.ylabel('Prediciton Error')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
 # Plot MCC
-plt.plot(snr_list, mccV0, marker='x')
-plt.plot(snr_list, mccV1, marker='x')
+combssv0, = plt.plot(snr_list, mccV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, mccV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('MCC')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
 # Plot Accuracy
-plt.plot(snr_list, accuracyV0, marker='x')
-plt.plot(snr_list, accuracyV1, marker='x')
+combssv0, = plt.plot(snr_list, accuracyV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, accuracyV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Accuracy')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
 # Plot F1 Score
-plt.plot(snr_list, f1V0, marker='x')
-plt.plot(snr_list, f1V1, marker='x')
+combssv0, = plt.plot(snr_list, f1V0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, f1V1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('F1 Score')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
 # Plot Sensitivity
-plt.plot(snr_list, sensitivityV0, marker='x')
-plt.plot(snr_list, sensitivityV1, marker='x')
+combssv0, = plt.plot(snr_list, sensitivityV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, sensitivityV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Sensitivity')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 #%%
 # Plot Specificity
-plt.plot(snr_list, specificityV0, marker='x')
-plt.plot(snr_list, specificityV1, marker='x')
+combssv0, = plt.plot(snr_list, specificityV0, label = "COMBSSV0", color = "teal", marker='x')
+combssv1, = plt.plot(snr_list, specificityV1, label = "COMBSSV1", color = "green", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Specificity')
 plt.title('COMBSSV0 vs COMBSSV1: Case 1')
+plt.legend(handles = [combssv0, combssv1])
 plt.show()
 
 # %%
