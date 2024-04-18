@@ -709,7 +709,6 @@ def combss_dynamicV1(X, y,
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	while not stop:
 		t_final, model, converge, _, _, _ = ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
-		print(f'first pass t: {t_final}')
 
 		len_model = model.shape[0]
 
@@ -746,7 +745,6 @@ def combss_dynamicV1(X, y,
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
 				t_final, model, converge,_ ,_ ,_= ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
-				print(f'second pass t: {t_final}')
 
 				len_model = model.shape[0]
 
