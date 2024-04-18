@@ -89,7 +89,7 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 		bulk_results[j, 1: nmetrics-2] = np.array(result2)
 		
 	df = pd.DataFrame(bulk_results, columns = names)
-	df.to_csv("./bulk_sim_res/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+	df.to_csv("./COMBSS-Original-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 	return
 
 #%%
@@ -97,7 +97,7 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 Function for running COMBSS on several datasets and 
 save the corresponding results in a file
 """
-def bulk_simV1(n, p, q, beta_type, K0, snr, corr,
+def bulk_simMap(n, p, q, beta_type, K0, snr, corr,
 					 t_init = [],
 					 delta_frac = 1,
 					 n_datasets=1, 
@@ -133,7 +133,7 @@ def bulk_simV1(n, p, q, beta_type, K0, snr, corr,
 			n_tinit = 1
 		
 
-		result1 = optimize.combssV1(X_train, y_train, X_test, y_test, t_init=t_init[0], 
+		result1 = optimize.combssMap(X_train, y_train, X_test, y_test, t_init=t_init[0], 
 						delta_frac=delta_frac,  q = q, nlam = nlam, eta=eta)
 		"""
 		Note that,
@@ -143,7 +143,7 @@ def bulk_simV1(n, p, q, beta_type, K0, snr, corr,
 		
 		for i in range(n_tinit-1):
 			
-			result_temp = optimize.combssV1(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
+			result_temp = optimize.combssMap(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
 								 delta_frac=delta_frac, q = q, nlam = nlam, eta=eta)
 			
 			running_time += result_temp[4]
@@ -170,6 +170,6 @@ def bulk_simV1(n, p, q, beta_type, K0, snr, corr,
 		bulk_results[j, 1: nmetrics-2] = np.array(result2)
 		
 	df = pd.DataFrame(bulk_results, columns = names)
-	df.to_csv("./bulk_sim_res/COMBSSV1-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+	df.to_csv("./COMBSS-Map-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 	return
 # %%

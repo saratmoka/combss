@@ -47,7 +47,7 @@ n_datasets = 50
 
 #%%
 
-snr_low_list = [0.5, 1, 2, 3, 4, 5, 6, 7, 8]
+snr_low_list = [4]
 for snr in snr_low_list:
     bulk_sim.bulk_simV0(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
@@ -56,7 +56,7 @@ for snr in snr_low_list:
                         nlam=nlam,
                         eta = eta,
                         seed=1234)
-    bulk_sim.bulk_simV1(n, p, q, beta_type, K0, snr, corr,
+    bulk_sim.bulk_simMap(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
                         delta_frac=delta_frac,
                         n_datasets=n_datasets, 
@@ -74,7 +74,7 @@ for snr in snr_low_list:
                         nlam=nlam,
                         eta = eta,
                         seed=1234)
-    bulk_sim.bulk_simV1(n, p, q, beta_type, K0, snr, corr,
+    bulk_sim.bulk_simMap(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
                         delta_frac=delta_frac,
                         n_datasets=n_datasets, 
@@ -104,7 +104,7 @@ delta_frac = 1
 n_datasets = 50
 
 #%%
-snr_high_list = [2, 3, 4, 5, 6, 7, 8]
+snr_high_list = [4]
 for snr in snr_high_list:
     bulk_sim.bulk_simV0(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,

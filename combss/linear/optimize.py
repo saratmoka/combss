@@ -24,6 +24,14 @@ def w_to_t(w):
 	t = 1/(1+np.exp(-w))
 	return t
 
+def t_to_wMap(t):
+    w = np.sqrt(-np.log(1 - t))
+    return w
+
+def w_to_tMap(w):
+    t = 1 - np.exp(-w*w)
+    return t
+
 def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
 			  cg_maxiter=None,
 			  cg_tol=1e-5):
@@ -193,11 +201,143 @@ def ADAM_combss(X, y,  lam, t_init,
 		w_trun = w_trun - alpha*np.divide(u_hat, epsilon + np.sqrt(v_hat)) 
 		w[M] = w_trun
 		t[M] = w_to_t(w_trun)
-		
-		w[t <= eta] = -np.inf
+	
 		t[t <= eta] = 0.0
+		
+		beta = np.zeros(p)
+		beta[M] = beta_trun
 
+		t_trun = t[M] 
+		
+		# t_seq.append(t.copy())
+		# beta_seq.append(beta)
+
+		if max_norm:
+			norm_t = max(np.abs(t - t_prev))
+			if l > 10000:
+				print('l', l)
+				
+				if l%100 == 0:
+					print('\t norm diff', norm_t)
+			if norm_t <= gd_tol:
+				count_to_term += 1
+				if count_to_term >= epoch:
+					break
+			else:
+				count_to_term = 0
+				
+		else:
+			norm_t = norm(t)
+			if norm_t == 0:
+				break
+			
+			elif norm(t_prev - t)/norm_t <= gd_tol:
+				count_to_term += 1
+				if count_to_term >= epoch:
+					break
+			else:
+				count_to_term = 0
+		t_prev = t.copy()
+	
+	model = np.where(t > tau)[0]
+
+	if l+1 < gd_maxiter:
+		converge = True
+	else:
+		converge = False
+	return  t, model, converge, l+1
+
+#%%
+def ADAM_combssMap(X, y,  lam, t_init,
+		delta_frac = 1,
+		CG = True,
+
+		## Adam parameters
+		xi1 = 0.9, 
+		xi2 = 0.999,            
+		alpha = 0.1, 
+		epsilon = 10e-8,
 	 
+		## Parameters for Termination
+		gd_maxiter = 1e5,
+		gd_tol = 1e-5,
+		max_norm = True, # default we use max norm as the termination condition.
+		epoch=10,
+		
+		## Truncation parameters
+		tau = 0.5,
+		eta = 0.0, 
+		
+		## Parameters for Conjugate Gradient method
+		cg_maxiter = None,
+		cg_tol = 1e-5):
+	"""
+	Implementation of the ADAM optimizer for combss. 
+	"""    
+	(n, p) = X.shape
+	
+	## One time operations
+	delta = delta_frac*n
+	Xy = (X.T@y)/n
+	XX = (X.T@X)/n
+	Z = XX.copy()
+	np.fill_diagonal(Z, np.diagonal(Z) - (delta/n))
+	
+	## Initialization
+	t = t_init.copy()
+		
+	w = t_to_wMap(t)
+	
+	t_trun = t.copy()
+	t_prev = t.copy()
+	active = p
+	
+	u = np.zeros(p)
+	v = np.zeros(p)
+	
+	beta_trun = np.zeros(p)  
+
+	c = np.zeros(p)
+	g1 = np.zeros(n)
+	g2 = np.zeros(n)
+	
+	
+	count_to_term = 0
+	
+	# t_seq = []
+	# beta_seq = []
+	
+	for l in range(gd_maxiter):
+		M = np.nonzero(t)[0] ## Indices of t correponds to elements greater than eta. 
+		M_trun = np.nonzero(t_trun)[0] 
+		active_new = M_trun.shape[0]
+		
+		if active_new != active:
+			## Find the effective set by removing the columns and rows corresponds to zero t's
+			XX = XX[M_trun][:, M_trun]
+			Z = Z[M_trun][:, M_trun]
+			X = X[:, M_trun]
+			Xy = Xy[M_trun]
+			active = active_new
+			t_trun = t_trun[M_trun]
+		
+		## Compute gradient for the effective terms
+		grad_trun, beta_trun, c, g1, g2 = f_grad_cg(t_trun, X, y, XX, Xy, Z, lam, delta, beta_trun[M_trun],  c[M_trun], g1, g2)
+		w_trun = w[M]
+		grad_trun = 2*grad_trun*(w_trun*np.exp(- w_trun*w_trun))
+		
+		## ADAM Updates 
+		u = xi1*u[M_trun] + (1 - xi1)*grad_trun
+		v = xi2*v[M_trun] + (1 - xi2)*(grad_trun*grad_trun) 
+	
+		u_hat = u/(1 - xi1**(l+1))
+		v_hat = v/(1 - xi2**(l+1))
+		
+		w_trun = w_trun - alpha*np.divide(u_hat, epsilon + np.sqrt(v_hat)) 
+		w[M] = w_trun
+		t[M] = w_to_tMap(w_trun)
+	
+		t[t <= eta] = 0.0
 		
 		beta = np.zeros(p)
 		beta[M] = beta_trun
@@ -642,7 +782,7 @@ def combss_dynamicV0(X, y,
 	
 	return  (model_list, lam_list)
 
-def combss_dynamicV1(X, y, 
+def combss_dynamicMap(X, y, 
 				   q = None,
 				   nlam = None,
 				   t_init= [],         # Initial t vector
@@ -708,7 +848,7 @@ def combss_dynamicV1(X, y,
 	stop = False
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	while not stop:
-		t_final, model, converge, _, _, _ = ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
+		t_final, model, converge, _ = ADAM_combssMap(X, y, lam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter=gd_maxiter,gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
 
 		len_model = model.shape[0]
 
@@ -744,7 +884,7 @@ def combss_dynamicV1(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				t_final, model, converge,_ ,_ ,_= ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
+				t_final, model, converge, _ = ADAM_combssMap(X, y, lam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter=gd_maxiter,gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
 
 				len_model = model.shape[0]
 
@@ -847,7 +987,7 @@ def combssV0(X_train, y_train, X_test, y_test,
 	
 	return model_opt, mse_opt, beta_opt, lam_opt, toc - tic
 
-def combssV1(X_train, y_train, X_test, y_test, 
+def combssMap(X_train, y_train, X_test, y_test, 
 			q = None,           # maximum model size
 			nlam = 50,        # number of values in the lambda grid
 			t_init= [],         # Initial t vector
@@ -880,7 +1020,7 @@ def combssV1(X_train, y_train, X_test, y_test,
 	
 	#print('Dynamic combss is called')
 	tic = time.process_time()
-	(model_list, lam_list) = combss_dynamicV1(X_train, y_train, q = q, nlam = nlam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter= gd_maxiter, gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
+	(model_list, lam_list) = combss_dynamicMap(X_train, y_train, q = q, nlam = nlam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter= gd_maxiter, gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
 	toc = time.process_time()
 	#print('Dynamic combss is completed')
 

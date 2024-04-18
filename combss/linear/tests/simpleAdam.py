@@ -148,7 +148,7 @@ def bulk_sim_given_dataV1(n, p, q, beta_type, K0, snr, corr,
 			n_tinit = 1
 		
 
-		result1 = optimize.combssV1(X_train, y_train, X_test, y_test, t_init=t_init[0], 
+		result1 = optimize.combssMap(X_train, y_train, X_test, y_test, t_init=t_init[0], 
 						delta_frac=delta_frac,  q = q, nlam = nlam, eta=eta)
 		"""
 		Note that,
@@ -158,7 +158,7 @@ def bulk_sim_given_dataV1(n, p, q, beta_type, K0, snr, corr,
 		
 		for i in range(n_tinit-1):
 			
-			result_temp = optimize.combssV1(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
+			result_temp = optimize.combssMap(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
 								 delta_frac=delta_frac, q = q, nlam = nlam, eta=eta)
 			
 			running_time += result_temp[4]
