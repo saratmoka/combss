@@ -194,7 +194,7 @@ def ADAM_combss(X, y,  lam, t_init,
 		w[M] = w_trun
 		t[M] = w_to_t(w_trun)
 		
-		w[t <= eta] = 0.0
+		w[t <= eta] = -np.inf
 		t[t <= eta] = 0.0
 
 	 
