@@ -1079,7 +1079,7 @@ def combss_dynamicV2(X, y,
 	stop = False
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	while not stop:
-		t_final, model, converge, _ = controller_combssV2(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
+		t_final, model, converge, _ = controller_combssV2(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5, cg_maxiter = cg_maxiter)
 
 		len_model = model.shape[0]
 
@@ -1115,7 +1115,7 @@ def combss_dynamicV2(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				t_final, model, converge,_ = controller_combssV2(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
+				t_final, model, converge,_ = controller_combssV2(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5, cg_maxiter=cg_maxiter)
 
 				len_model = model.shape[0]
 
