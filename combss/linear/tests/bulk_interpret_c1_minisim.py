@@ -67,6 +67,7 @@ for snr in snr_low_list:
     version1.update({"Precision": avg_PrecisionV1})
     version1.update({"Time": avg_TimeV1})
 
+
     df2 = pd.read_csv("./bulk_sim_res/minisim/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
     
     version2 = {}
@@ -91,7 +92,11 @@ for snr in snr_low_list:
     version2.update({"Precision": avg_PrecisionV2})
     version2.update({"Time": avg_TimeV2})
 
+
     snr_res.update({snr: [version0, version1, version2]})
+
+
+
 
 #%%
 # Plot Accuracy
