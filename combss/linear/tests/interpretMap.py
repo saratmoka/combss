@@ -14,9 +14,11 @@ n_tinit = 1
 p = 20
 q = 20
 
-df0 = pd.read_csv("./COMBSS-Original-case-1-n-100-p-20-q-20-corr-0.8-ninit-1-snr-4-ndatasets-50-nlam-25-eta-0.001")
+df0 = pd.read_csv("./COMBSS-Original-case-1-n-100-p-20-q-20-corr-0.8-ninit-1-snr-4-ndatasets-50-nlam-25-eta-0.001.csv")
+df1 = pd.read_csv("./COMBSS-Map-case-1-n-100-p-20-q-20-corr-0.8-ninit-1-snr-4-ndatasets-50-nlam-25-eta-0.001.csv")
 
-version0 = {}
+axes = ["Sigmoid Mapping", "Original Mapping"]
+
 avg_MSEV0 = df0['MSE'].mean()
 avg_PEV0 = df0['PE'].mean()
 avg_MCCV0 = df0['MCC'].mean()
@@ -28,20 +30,6 @@ avg_PrecisionV0 = df0['Precision'].mean()
 avg_TimeV0 = df0['Time'].mean()
 avg_LambdaV0 = df0['Opt Lambda'].mean()
 
-version0.update({"MSE": avg_MSEV0})
-version0.update({"PE": avg_PEV0})
-version0.update({"MCC": avg_MCCV0})
-version0.update({"Accuracy": avg_AccuracyV0})
-version0.update({"Sensitivity": avg_SensitivityV0})
-version0.update({"Specificity": avg_SpecificityV0})
-version0.update({"F1": avg_F1V0})
-version0.update({"Precision": avg_PrecisionV0})
-version0.update({"Time": avg_TimeV0})
-
-
-df1 = pd.read_csv("./COMBSS-Map-case-1-n-100-p-20-q-20-corr-0.8-ninit-1-snr-4-ndatasets-50-nlam-25-eta-0.001")
-
-version1 = {}
 avg_MSEV1 = df1['MSE'].mean()
 avg_PEV1 = df1['PE'].mean()
 avg_MCCV1 = df1['MCC'].mean()
@@ -53,311 +41,160 @@ avg_PrecisionV1 = df1['Precision'].mean()
 avg_TimeV1 = df1['Time'].mean()
 avg_LambdaV1 = df1['Opt Lambda'].mean()
 
-version1.update({"MSE": avg_MSEV1})
-version1.update({"PE": avg_PEV1})
-version1.update({"MCC": avg_MCCV1})
-version1.update({"Accuracy": avg_AccuracyV1})
-version1.update({"Sensitivity": avg_SensitivityV1})
-version1.update({"Specificity": avg_SpecificityV1})
-version1.update({"F1": avg_F1V1})
-version1.update({"Precision": avg_PrecisionV1})
-version1.update({"Time": avg_TimeV1})
-
-    snr_res.update({snr: [version0, version1]})
-
-#%%
-# Plot Accuracy
-mseV0 = []
-peV0 = []
-mccV0 = []
-accuracyV0 = []
-sensitivityV0 = []
-specificityV0 = []
-f1V0 = []
-precisionV0 = []
-timeV0 = []
-lambdaV0 = []
-
-mseV1 = []
-peV1 = []
-mccV1 = []
-accuracyV1 = []
-sensitivityV1 = []
-specificityV1 = []
-f1V1 = []
-precisionV1 = []
-timeV1 = []
-lambdaV1 = []
-
-
-snr_list = snr_res.keys()
-
-for snr in snr_res.values():
-    mseV0.append(snr[0].get("MSE"))
-    peV0.append(snr[0].get("PE"))
-    mccV0.append(snr[0].get("MCC"))
-    accuracyV0.append(snr[0].get("Accuracy"))
-    sensitivityV0.append(snr[0].get("Sensitivity"))
-    specificityV0.append(snr[0].get("Specificity"))
-    f1V0.append(snr[0].get("F1"))
-    precisionV0.append(snr[0].get("Precision"))
-    timeV0.append(snr[0].get("Time"))
-
-    mseV1.append(snr[1].get("MSE"))
-    peV1.append(snr[1].get("PE"))
-    mccV1.append(snr[1].get("MCC"))
-    accuracyV1.append(snr[1].get("Accuracy"))
-    sensitivityV1.append(snr[1].get("Sensitivity"))
-    specificityV1.append(snr[1].get("Specificity"))
-    f1V1.append(snr[1].get("F1"))
-    precisionV1.append(snr[1].get("Precision"))
-    timeV1.append(snr[1].get("Time"))
+mse = [avg_MSEV0, avg_MSEV1]
+pe = [avg_PEV0, avg_PEV1]
+mcc = [avg_MCCV0, avg_MCCV1]
+accuracy = [avg_AccuracyV0, avg_AccuracyV1]
+sensitivity = [avg_SensitivityV0, avg_SensitivityV1]
+specificity = [avg_SpecificityV0, avg_SpecificityV1]
+f1 = [avg_F1V0, avg_F1V1]
 
 #%%
 # Plot MSE
-combssv0, = plt.plot(snr_list, mseV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, mseV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
+plt.bar(axes, mse, color = "skyblue")
+plt.xlabel('Mapping Types')
 plt.ylabel('MSE')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.title('Sigmoid vs Original Mapping: MSE')
 plt.show()
 
 #%%
 # Plot Prediction Error
-combssv0, = plt.plot(snr_list, peV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, peV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
-plt.ylabel('Prediciton Error')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.bar(axes, pe, color = "skyblue")
+plt.xlabel('Mapping Types')
+plt.ylabel('Prediction Error')
+plt.title('Sigmoid vs Original Mapping: Prediction Error')
 plt.show()
 
 #%%
 # Plot MCC
-combssv0, = plt.plot(snr_list, mccV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, mccV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
-plt.ylabel('MCC')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.bar(axes, mcc, color = "skyblue")
+plt.xlabel('Mapping Types')
+plt.ylabel('Matthews Correlation Coefficient')
+plt.title('Sigmoid vs Original Mapping: MCC')
 plt.show()
 
 #%%
 # Plot Accuracy
-combssv0, = plt.plot(snr_list, accuracyV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, accuracyV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
+plt.bar(axes, accuracy, color = "skyblue")
+plt.xlabel('Mapping Types')
 plt.ylabel('Accuracy')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.title('Sigmoid vs Original Mapping: Accuracy')
 plt.show()
 
 #%%
 # Plot F1 Score
-combssv0, = plt.plot(snr_list, f1V0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, f1V1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
+plt.bar(axes, f1, color = "skyblue")
+plt.xlabel('Mapping Types')
 plt.ylabel('F1 Score')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.title('Sigmoid vs Original Mapping: F1 Score')
 plt.show()
 
 #%%
 # Plot Sensitivity
-combssv0, = plt.plot(snr_list, sensitivityV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, sensitivityV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
+plt.bar(axes, sensitivity, color = "skyblue")
+plt.xlabel('Mapping Types')
 plt.ylabel('Sensitivity')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.title('Sigmoid vs Original Mapping: Sensitivity')
 plt.show()
 
 #%%
 # Plot Specificity
-combssv0, = plt.plot(snr_list, specificityV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, specificityV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
+plt.bar(axes, specificity, color = "skyblue")
+plt.xlabel('Mapping Types')
 plt.ylabel('Specificity')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.title('Sigmoid vs Original Mapping: Specificity')
 plt.show()
 
 # %%
-p = 1000
-q = 20
+df0 = pd.read_csv("./COMBSS-Original-case-1-n-100-p-1000-q-20-corr-0.8-ninit-1-snr-4-ndatasets-50-nlam-25-eta-0.001.csv")
+df1 = pd.read_csv("./COMBSS-Map-case-1-n-100-p-1000-q-100-corr-0.8-ninit-1-snr-4-ndatasets-1-nlam-100-eta-0.001.csv")
 
-snr_res = {}
+axes = ["Sigmoid Mapping", "Original Mapping"]
 
-snr_high_list = [2, 3, 4, 5, 6, 7, 8]
-for snr in snr_high_list:
-    df0 = pd.read_csv("./bulk_sim_res/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
-    
-    version0 = {}
-    avg_MSEV0 = df0['MSE'].mean()
-    avg_PEV0 = df0['PE'].mean()
-    avg_MCCV0 = df0['MCC'].mean()
-    avg_AccuracyV0 = df0['Accuracy'].mean()
-    avg_SensitivityV0 = df0['Sensitivity'].mean()
-    avg_SpecificityV0 = df0['Specificity'].mean()
-    avg_F1V0 = df0['F1_score'].mean()
-    avg_PrecisionV0 = df0['Precision'].mean()
-    avg_TimeV0 = df0['Time'].mean()
-    avg_LambdaV0 = df0['Opt Lambda'].mean()
+avg_MSEV0 = df0['MSE'].mean()
+avg_PEV0 = df0['PE'].mean()
+avg_MCCV0 = df0['MCC'].mean()
+avg_AccuracyV0 = df0['Accuracy'].mean()
+avg_SensitivityV0 = df0['Sensitivity'].mean()
+avg_SpecificityV0 = df0['Specificity'].mean()
+avg_F1V0 = df0['F1_score'].mean()
+avg_PrecisionV0 = df0['Precision'].mean()
+avg_TimeV0 = df0['Time'].mean()
+avg_LambdaV0 = df0['Opt Lambda'].mean()
 
-    version0.update({"MSE": avg_MSEV0})
-    version0.update({"PE": avg_PEV0})
-    version0.update({"MCC": avg_MCCV0})
-    version0.update({"Accuracy": avg_AccuracyV0})
-    version0.update({"Sensitivity": avg_SensitivityV0})
-    version0.update({"Specificity": avg_SpecificityV0})
-    version0.update({"F1": avg_F1V0})
-    version0.update({"Precision": avg_PrecisionV0})
-    version0.update({"Time": avg_TimeV0})
+avg_MSEV1 = df1['MSE'].mean()
+avg_PEV1 = df1['PE'].mean()
+avg_MCCV1 = df1['MCC'].mean()
+avg_AccuracyV1 = df1['Accuracy'].mean()
+avg_SensitivityV1 = df1['Sensitivity'].mean()
+avg_SpecificityV1 = df1['Specificity'].mean()
+avg_F1V1 = df1['F1_score'].mean()
+avg_PrecisionV1 = df1['Precision'].mean()
+avg_TimeV1 = df1['Time'].mean()
+avg_LambdaV1 = df1['Opt Lambda'].mean()
 
-
-    df1 = pd.read_csv("./bulk_sim_res/COMBSSV1-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
-
-    version1 = {}
-    avg_MSEV1 = df1['MSE'].mean()
-    avg_PEV1 = df1['PE'].mean()
-    avg_MCCV1 = df1['MCC'].mean()
-    avg_AccuracyV1 = df1['Accuracy'].mean()
-    avg_SensitivityV1 = df1['Sensitivity'].mean()
-    avg_SpecificityV1 = df1['Specificity'].mean()
-    avg_F1V1 = df1['F1_score'].mean()
-    avg_PrecisionV1 = df1['Precision'].mean()
-    avg_TimeV1 = df1['Time'].mean()
-    avg_LambdaV1 = df1['Opt Lambda'].mean()
-
-    version1.update({"MSE": avg_MSEV1})
-    version1.update({"PE": avg_PEV1})
-    version1.update({"MCC": avg_MCCV1})
-    version1.update({"Accuracy": avg_AccuracyV1})
-    version1.update({"Sensitivity": avg_SensitivityV1})
-    version1.update({"Specificity": avg_SpecificityV1})
-    version1.update({"F1": avg_F1V1})
-    version1.update({"Precision": avg_PrecisionV1})
-    version1.update({"Time": avg_TimeV1})
-
-    snr_res.update({snr: [version0, version1]})
-
-#%%
-# Plot Accuracy
-mseV0 = []
-peV0 = []
-mccV0 = []
-accuracyV0 = []
-sensitivityV0 = []
-specificityV0 = []
-f1V0 = []
-precisionV0 = []
-timeV0 = []
-lambdaV0 = []
-
-mseV1 = []
-peV1 = []
-mccV1 = []
-accuracyV1 = []
-sensitivityV1 = []
-specificityV1 = []
-f1V1 = []
-precisionV1 = []
-timeV1 = []
-lambdaV1 = []
-
-
-snr_list = snr_res.keys()
-
-for snr in snr_res.values():
-    mseV0.append(snr[0].get("MSE"))
-    peV0.append(snr[0].get("PE"))
-    mccV0.append(snr[0].get("MCC"))
-    accuracyV0.append(snr[0].get("Accuracy"))
-    sensitivityV0.append(snr[0].get("Sensitivity"))
-    specificityV0.append(snr[0].get("Specificity"))
-    f1V0.append(snr[0].get("F1"))
-    precisionV0.append(snr[0].get("Precision"))
-    timeV0.append(snr[0].get("Time"))
-
-    mseV1.append(snr[1].get("MSE"))
-    peV1.append(snr[1].get("PE"))
-    mccV1.append(snr[1].get("MCC"))
-    accuracyV1.append(snr[1].get("Accuracy"))
-    sensitivityV1.append(snr[1].get("Sensitivity"))
-    specificityV1.append(snr[1].get("Specificity"))
-    f1V1.append(snr[1].get("F1"))
-    precisionV1.append(snr[1].get("Precision"))
-    timeV1.append(snr[1].get("Time"))
+mse = [avg_MSEV0, avg_MSEV1]
+pe = [avg_PEV0, avg_PEV1]
+mcc = [avg_MCCV0, avg_MCCV1]
+accuracy = [avg_AccuracyV0, avg_AccuracyV1]
+sensitivity = [avg_SensitivityV0, avg_SensitivityV1]
+specificity = [avg_SpecificityV0, avg_SpecificityV1]
+f1 = [avg_F1V0, avg_F1V1]
 
 #%%
 # Plot MSE
-combssv0, = plt.plot(snr_list, mseV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, mseV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
+plt.bar(axes, mse, color = "skyblue")
+plt.xlabel('Mapping Types')
 plt.ylabel('MSE')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.title('Sigmoid vs Original Mapping: MSE')
 plt.show()
 
 #%%
 # Plot Prediction Error
-combssv0, = plt.plot(snr_list, peV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, peV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
-plt.ylabel('Prediciton Error')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.bar(axes, pe, color = "skyblue")
+plt.xlabel('Mapping Types')
+plt.ylabel('Prediction Error')
+plt.title('Sigmoid vs Original Mapping: Prediction Error')
 plt.show()
 
 #%%
 # Plot MCC
-combssv0, = plt.plot(snr_list, mccV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, mccV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
-plt.ylabel('MCC')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.bar(axes, mcc, color = "skyblue")
+plt.xlabel('Mapping Types')
+plt.ylabel('Matthews Correlation Coefficient')
+plt.title('Sigmoid vs Original Mapping: MCC')
 plt.show()
 
 #%%
 # Plot Accuracy
-combssv0, = plt.plot(snr_list, accuracyV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, accuracyV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
+plt.bar(axes, accuracy, color = "skyblue")
+plt.xlabel('Mapping Types')
 plt.ylabel('Accuracy')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.title('Sigmoid vs Original Mapping: Accuracy')
 plt.show()
 
 #%%
 # Plot F1 Score
-combssv0, = plt.plot(snr_list, f1V0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, f1V1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
+plt.bar(axes, f1, color = "skyblue")
+plt.xlabel('Mapping Types')
 plt.ylabel('F1 Score')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.title('Sigmoid vs Original Mapping: F1 Score')
 plt.show()
 
 #%%
 # Plot Sensitivity
-combssv0, = plt.plot(snr_list, sensitivityV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, sensitivityV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
+plt.bar(axes, sensitivity, color = "skyblue")
+plt.xlabel('Mapping Types')
 plt.ylabel('Sensitivity')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.title('Sigmoid vs Original Mapping: Sensitivity')
 plt.show()
 
 #%%
 # Plot Specificity
-combssv0, = plt.plot(snr_list, specificityV0, label = "COMBSSV0", color = "orange", marker='x')
-combssv1, = plt.plot(snr_list, specificityV1, label = "COMBSSV1", color = "green", marker='x')
-plt.xlabel('Signal to Noise Ratio')
+plt.bar(axes, specificity, color = "skyblue")
+plt.xlabel('Mapping Types')
 plt.ylabel('Specificity')
-plt.title('COMBSSV0 vs COMBSSV1: Case 1')
-plt.legend(handles = [combssv0, combssv1])
+plt.title('Sigmoid vs Original Mapping: Specificity')
 plt.show()
 
 # %%
