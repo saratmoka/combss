@@ -8,7 +8,9 @@ import os
 current_dir = os.path.dirname(os.path.realpath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
-import optimize
+import variant0
+import variant1
+import variant2
 import metric
 
 #%%
@@ -52,7 +54,7 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 			n_tinit = 1
 		
 
-		result1 = optimize.combssV0(X_train, y_train, X_test, y_test, t_init=t_init[0], 
+		result1 = variant0.combssV0(X_train, y_train, X_test, y_test, t_init=t_init[0], 
 						delta_frac=delta_frac,  q = q, nlam = nlam, eta=eta)
 		"""
 		Note that,
@@ -62,7 +64,7 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 		
 		for i in range(n_tinit-1):
 			
-			result_temp = optimize.combssV0(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
+			result_temp = variant0.combssV0(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
 								 delta_frac=delta_frac, q = q, nlam = nlam, eta=eta)
 			
 			running_time += result_temp[4]
@@ -89,7 +91,7 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 		bulk_results[j, 1: nmetrics-2] = np.array(result2)
 		
 	df = pd.DataFrame(bulk_results, columns = names)
-	df.to_csv("./bulk_sim_res/minisim/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+	df.to_csv("./sim_scenario/version0/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 	return
 
 #%%
@@ -133,7 +135,7 @@ def bulk_simV1(n, p, q, beta_type, K0, snr, corr,
 			n_tinit = 1
 		
 
-		result1 = optimize.combssV1(X_train, y_train, X_test, y_test, t_init=t_init[0], 
+		result1 = variant1.combssV1(X_train, y_train, X_test, y_test, t_init=t_init[0], 
 						delta_frac=delta_frac,  q = q, nlam = nlam, eta=eta)
 		"""
 		Note that,
@@ -143,7 +145,7 @@ def bulk_simV1(n, p, q, beta_type, K0, snr, corr,
 		
 		for i in range(n_tinit-1):
 			
-			result_temp = optimize.combssV1(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
+			result_temp = variant1.combssV1(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
 								 delta_frac=delta_frac, q = q, nlam = nlam, eta=eta)
 			
 			running_time += result_temp[4]
@@ -170,7 +172,7 @@ def bulk_simV1(n, p, q, beta_type, K0, snr, corr,
 		bulk_results[j, 1: nmetrics-2] = np.array(result2)
 		
 	df = pd.DataFrame(bulk_results, columns = names)
-	df.to_csv("./bulk_sim_res/minisim/COMBSSV1-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+	df.to_csv("./sim_scenario/COMBSSV1-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 	return
 # %%
 
@@ -210,8 +212,8 @@ def bulk_simV2(n, p, q, beta_type, K0, snr, corr,
 			n_tinit = 1
 		
 
-		result1 = optimize.combssV2(X_train, y_train, X_test, y_test, t_init=t_init[0], 
-						delta_frac=delta_frac,  q = q, nlam = nlam, eta=eta)
+		result1 = variant2.combssV2(X_train, y_train, X_test, y_test, t_init=t_init[0], 
+						delta_frac=delta_frac,  q = q, nlam = nlam, eta=eta, cg_maxiter = None, adam_maxiter=None)
 		"""
 		Note that,
 			result1 = [model_opt, mse_opt, beta_opt, lam_opt, time]
@@ -220,8 +222,8 @@ def bulk_simV2(n, p, q, beta_type, K0, snr, corr,
 		
 		for i in range(n_tinit-1):
 			
-			result_temp = optimize.combssV2(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
-								 delta_frac=delta_frac, q = q, nlam = nlam, eta=eta)
+			result_temp = variant2.combssV2(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
+								 delta_frac=delta_frac, q = q, nlam = nlam, eta=eta, cg_maxiter = None, adam_maxiter=None)
 			
 			running_time += result_temp[4]
 
@@ -247,5 +249,5 @@ def bulk_simV2(n, p, q, beta_type, K0, snr, corr,
 		bulk_results[j, 1: nmetrics-2] = np.array(result2)
 		
 	df = pd.DataFrame(bulk_results, columns = names)
-	df.to_csv("./bulk_sim_res/minisim/COMBSSV2-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+	df.to_csv("./sim_scenario/scenario1/COMBSSV2-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 	return
