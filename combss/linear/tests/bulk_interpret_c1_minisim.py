@@ -169,6 +169,7 @@ for snr in snr_res.values():
 
 #%%
 # Plot MSE
+fig, ax = plt.subplots()
 combssv0, = plt.plot(snr_list, mseV0, label = "COMBSSV0", color = "orange", marker='x')
 combssv1, = plt.plot(snr_list, mseV1, label = "COMBSSV1", color = "green", marker='x')
 combssv2, = plt.plot(snr_list, mseV2, label = "COMBSSV2", color = "purple", marker='x')
@@ -177,10 +178,12 @@ plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('MSE')
 plt.title('COMBSSV0 vs COMBSSV1 vs COMBSSV2: Case 1')
 plt.legend(handles = [combssv0, combssv1, combssv2])
+ax.set_ylim(bottom=0)
 plt.show()
 
 #%%
 # Plot Prediction Error
+fig, ax = plt.subplots()
 combssv0, = plt.plot(snr_list, peV0, label = "COMBSSV0", color = "orange", marker='x')
 combssv1, = plt.plot(snr_list, peV1, label = "COMBSSV1", color = "green", marker='x')
 combssv2, = plt.plot(snr_list, peV2, label = "COMBSSV2", color = "purple", marker='x')
@@ -189,10 +192,12 @@ plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Prediciton Error')
 plt.title('COMBSSV0 vs COMBSSV1 vs COMBSSV2: Case 1')
 plt.legend(handles = [combssv0, combssv1, combssv2])
+ax.set_ylim(bottom=0)
 plt.show()
 
 #%%
 # Plot MCC
+fig, ax = plt.subplots()
 combssv0, = plt.plot(snr_list, mccV0, label = "COMBSSV0", color = "orange", marker='x')
 combssv1, = plt.plot(snr_list, mccV1, label = "COMBSSV1", color = "green", marker='x')
 combssv2, = plt.plot(snr_list, mccV2, label = "COMBSSV2", color = "purple", marker='x')
@@ -201,10 +206,12 @@ plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('MCC')
 plt.title('COMBSSV0 vs COMBSSV1 vs COMBSSV2: Case 1')
 plt.legend(handles = [combssv0, combssv1, combssv2])
+ax.set_ylim(bottom=0)
 plt.show()
 
 #%%
 # Plot Accuracy
+fig, ax = plt.subplots()
 combssv0, = plt.plot(snr_list, accuracyV0, label = "COMBSSV0", color = "orange", marker='x')
 combssv1, = plt.plot(snr_list, accuracyV1, label = "COMBSSV1", color = "green", marker='x')
 combssv2, = plt.plot(snr_list, accuracyV2, label = "COMBSSV2", color = "purple", marker='x')
@@ -213,10 +220,13 @@ plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Accuracy')
 plt.title('COMBSSV0 vs COMBSSV1 vs COMBSSV2: Case 1')
 plt.legend(handles = [combssv0, combssv1, combssv2])
+ax.set_ylim(bottom=0)
+ax.set_ylim(top=1)
 plt.show()
 
 #%%
 # Plot F1 Score
+fig, ax = plt.subplots()
 combssv0, = plt.plot(snr_list, f1V0, label = "COMBSSV0", color = "orange", marker='x')
 combssv1, = plt.plot(snr_list, f1V1, label = "COMBSSV1", color = "green", marker='x')
 combssv2, = plt.plot(snr_list, f1V2, label = "COMBSSV2", color = "purple", marker='x')
@@ -225,10 +235,13 @@ plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('F1 Score')
 plt.title('COMBSSV0 vs COMBSSV1 vs COMBSSV2: Case 1')
 plt.legend(handles = [combssv0, combssv1, combssv2])
+ax.set_ylim(bottom=0)
+ax.set_ylim(top=1)
 plt.show()
 
 #%%
 # Plot Sensitivity
+fig, ax = plt.subplots()
 combssv0, = plt.plot(snr_list, sensitivityV0, label = "COMBSSV0", color = "orange", marker='x')
 combssv1, = plt.plot(snr_list, sensitivityV1, label = "COMBSSV1", color = "green", marker='x')
 combssv2, = plt.plot(snr_list, sensitivityV2, label = "COMBSSV2", color = "purple", marker='x')
@@ -237,10 +250,13 @@ plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Sensitivity')
 plt.title('COMBSSV0 vs COMBSSV1 vs COMBSSV2: Case 1')
 plt.legend(handles = [combssv0, combssv1, combssv2])
+ax.set_ylim(bottom=0)
+ax.set_ylim(top=1)
 plt.show()
 
 #%%
 # Plot Specificity
+fig, ax = plt.subplots()
 combssv0, = plt.plot(snr_list, specificityV0, label = "COMBSSV0", color = "orange", marker='x')
 combssv1, = plt.plot(snr_list, specificityV1, label = "COMBSSV1", color = "green", marker='x')
 combssv2, = plt.plot(snr_list, specificityV2, label = "COMBSSV2", color = "purple", marker='x')
@@ -249,6 +265,8 @@ plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Specificity')
 plt.title('COMBSSV0 vs COMBSSV1 vs COMBSSV2: Case 1')
 plt.legend(handles = [combssv0, combssv1, combssv2])
+ax.set_ylim(bottom=0)
+ax.set_ylim(top=1)
 plt.show()
 
 # %%
