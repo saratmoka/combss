@@ -68,7 +68,7 @@ n_datasets = 50
 
 beta_type = 1
 
-snr_high_list = [3, 5, 7]
+snr_high_list = [7]
 for snr in snr_high_list:
     bulk_sim.bulk_simV2(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
