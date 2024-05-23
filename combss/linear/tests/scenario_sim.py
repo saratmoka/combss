@@ -35,11 +35,11 @@ ninit = len(t_init)
 nlam = 25
 
 delta_frac = 1
-n_datasets = 50
+n_datasets = 10
 
 beta_type = 1
 
-snr_high_list = [3, 4, 7]
+snr_high_list = [5]
 for snr in snr_high_list:
     bulk_sim.bulk_simV0(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
@@ -68,7 +68,7 @@ n_datasets = 50
 
 beta_type = 1
 
-snr_high_list = [7]
+snr_high_list = [3]
 for snr in snr_high_list:
     bulk_sim.bulk_simV2(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,

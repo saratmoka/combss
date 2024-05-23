@@ -132,7 +132,6 @@ def ADAM_combss(X, y,  lam, t_init,
 		t_prev = t.copy()
 	
 	model = np.where(t > tau)[0]
-	print(f'conjugate gradient iteration: {l}')
 
 	if l+1 < gd_maxiter:
 		converge = True

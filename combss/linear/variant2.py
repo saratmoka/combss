@@ -67,7 +67,7 @@ def control_funV2(X, y,  lam, t_init,
 	 
 		# Stopping criteria
 		max_norm = True, # default we use max norm as the termination condition.
-		epoch=10,
+		epoch=5,
 		
 		## Truncation parameters
 		tau = 0.5,

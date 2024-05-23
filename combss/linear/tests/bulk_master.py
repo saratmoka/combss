@@ -113,7 +113,7 @@ ninit = len(t_init)
 nlam = 25
 
 delta_frac = 1
-n_datasets = 50
+n_datasets = 20
 
 #%%
 beta_type = 1

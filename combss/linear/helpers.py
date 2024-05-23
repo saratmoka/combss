@@ -1,6 +1,8 @@
 import numpy as np
 from numpy.linalg import pinv, norm
 from scipy.sparse.linalg import cg
+from scipy.sparse.linalg import bicg
+from scipy.sparse.linalg import bicgstab
 
 '''
 Helper functions for COMBSS
@@ -42,7 +44,9 @@ def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
 		TXy = np.multiply(t, Xy)
 		
 		## Constructing beta estimate
-		beta, _ = cg(Lt, TXy, x0=beta, maxiter=cg_maxiter, tol=cg_tol)
+		# beta, _ = cg(Lt, TXy, x0=beta, maxiter=cg_maxiter, rtol=cg_tol)
+		# beta, _ = bicg(Lt, TXy, x0=beta, maxiter=cg_maxiter, rtol=cg_tol)
+		beta, _ = bicgstab(Lt, TXy, x0=beta, maxiter=cg_maxiter, rtol=cg_tol)
 		
 		## Constructing a and b
 		gamma = t*beta
@@ -51,7 +55,9 @@ def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
 		b = a - (delta/n)*gamma
 		
 		## Constructing c and d
-		c, _ = cg(Lt, t*a, x0=c, maxiter=cg_maxiter, tol=cg_tol) 
+		# c, _ = cg(Lt, t*a, x0=c, maxiter=cg_maxiter, rtol=cg_tol)
+		# c, _ = bicg(Lt, t*a, x0=c, maxiter=cg_maxiter, rtol=cg_tol) 
+		c, _ = bicgstab(Lt, t*a, x0=c, maxiter=cg_maxiter, rtol=cg_tol) 
 		
 		d = Z@(t*c)
 		
@@ -78,7 +84,9 @@ def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
 		## estimate beta
 		tXy = t*Xy
 		XtStXy = XtS@tXy         
-		g1, _ = cg(Lt_tilde, XtStXy, x0=g1, maxiter=cg_maxiter, tol=cg_tol)
+		# g1, _ = cg(Lt_tilde, XtStXy, x0=g1, maxiter=cg_maxiter, tol=cg_tol)
+		# g1, _ = bicg(Lt_tilde, XtStXy, x0=g1, maxiter=cg_maxiter, tol=cg_tol)
+		g1, _ = bicgstab(Lt_tilde, XtStXy, x0=g1, maxiter=cg_maxiter, tol=cg_tol)
 		beta = S*(tXy - Xt.T@g1)
 
 
@@ -90,7 +98,88 @@ def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
 		
 		## Constructing c and d
 		ta = t*a
-		g2, _ = cg(Lt_tilde, XtS@ta, x0=g2, maxiter=cg_maxiter, tol=cg_tol) 
+		# g2, _ = cg(Lt_tilde, XtS@ta, x0=g2, maxiter=cg_maxiter, rtol=cg_tol)
+		# g2, _ = bicg(Lt_tilde, XtS@ta, x0=g2, maxiter=cg_maxiter, rtol=cg_tol) 
+		g2, _ = bicgstab(Lt_tilde, XtS@ta, x0=g2, maxiter=cg_maxiter, rtol=cg_tol)  
+		c = S*(ta - Xt.T@g2)
+		d = Z@(t*c)
+		
+		## Constructing gradient
+		grad = 2*(beta*(a - d) - (b*c)) + lam
+
+	return grad, beta, c, g1, g2
+
+def f_grad_kaczmarz(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
+			  kaczmarz_maxiter=None,
+			  kaczmarz_tol=1e-5):
+	"""
+	Function to estimate gradient of f(t) via conjugate gradient
+	Here, XX = (X.T@X)/n, Xy = (X.T@y)/n, Z = XX - (delta/n) I
+
+	QQQQ Describe each argument QQQQ
+	
+	"""    
+	p = t.shape[0]
+	n = y.shape[0]
+	
+	if n >= p:
+		## Construct Lt
+		ZT = np.multiply(Z, t)
+		Lt = np.multiply(ZT, t[:, np.newaxis])
+		diag_Lt = np.diagonal(Lt) + (delta/n)
+		np.fill_diagonal(Lt, diag_Lt)
+		TXy = np.multiply(t, Xy)
+		
+		## Constructing beta estimate
+		beta, _ = cg(Lt, TXy, x0=beta, maxiter=kaczmarz_maxiter, tol=kaczmarz_tol)
+		
+		## Constructing a and b
+		gamma = t*beta
+		a = -Xy
+		a += XX@gamma
+		b = a - (delta/n)*gamma
+		
+		## Constructing c and d
+		c, _ = cg(Lt, t*a, x0=c, maxiter=kaczmarz_maxiter, tol=kaczmarz_tol) 
+		
+		d = Z@(t*c)
+		
+		## Constructing gradient
+		grad = 2*(beta*(a - d) - (b*c)) + lam
+		
+	else:
+		## constructing Lt_tilde
+		temp = 1 - t*t
+		temp[temp < 1e-8] = 1e-8 
+		"""
+		Above we map all the values of temp smaller than 1e-8 to 1e-8 to avoid numerical instability that can 
+		arise in the following line.
+		"""
+		S = n*np.divide(1, temp)/delta
+		
+		
+		Xt = np.multiply(X, t)/np.sqrt(n)
+		XtS = np.multiply(Xt, S)
+		Lt_tilde = Xt@(XtS.T)
+		np.fill_diagonal(Lt_tilde, np.diagonal(Lt_tilde) + 1)
+		
+	   
+		## estimate beta
+		tXy = t*Xy
+		XtStXy = XtS@tXy         
+		g1, _ = cg(Lt_tilde, XtStXy, x0=g1, maxiter=kaczmarz_maxiter, tol=kaczmarz_tol)
+		beta = S*(tXy - Xt.T@g1)
+
+
+		## Constructing a and b
+		gamma = t*beta
+		a = -Xy
+		a += XX@gamma
+		b = a - (delta/n)*gamma
+		
+		## Constructing c and d
+		ta = t*a
+		g2, _ = cg(Lt_tilde, XtS@ta, x0=g2, maxiter=kaczmarz_maxiter, tol=kaczmarz_tol) 
 		c = S*(ta - Xt.T@g2)
 		d = Z@(t*c)
 		
