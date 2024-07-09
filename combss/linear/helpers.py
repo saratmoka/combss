@@ -1,11 +1,31 @@
 import numpy as np
 from numpy.linalg import pinv, norm
 from scipy.sparse.linalg import cg
+from numpy.linalg import inv
+from sklearn.linear_model import ElasticNet
+from sklearn.linear_model import Ridge
+
 
 '''
 Helper functions for COMBSS
 '''
 
+""" Transform t to w using a sigmoid mapping.
+
+	In other words, return an input `X_original` whose transform would be X.
+
+	Parameters
+	----------
+	t :  
+
+	Returns
+	-------
+	w : 
+
+	Notes
+	-----
+	
+"""
 def t_to_w(t):
 	"""
 	Function to convert t to w, and it is used in converting box-constraint problem to an unconstraint one.
@@ -13,6 +33,23 @@ def t_to_w(t):
 	w = np.log(t/(1-t))
 	return w
 
+
+""" Transform w to t using a logit mapping.
+
+	In other words, return an input `X_original` whose transform would be X.
+
+	Parameters
+	----------
+	w :  
+
+	Returns
+	-------
+	t : 
+
+	Notes
+	-----
+	
+"""
 def w_to_t(w):
 	"""
 	Function to convert w to t, and it is used in converting solution of the unconstraint problem to the constrained case.
@@ -20,16 +57,75 @@ def w_to_t(w):
 	t = 1/(1+np.exp(-w))
 	return t
 
+
+def gen_lam_max(A):
+	b_k = np.random.rand(A.shape[1])
+
+	for _ in range(1000):
+		b_ki = np.dot(A, b_k)
+
+		b_ki_norm = np.linalg.norm(b_ki)
+		b_k = b_ki / b_ki_norm
+
+	eigenvalue = np.dot(b_k, np.dot(A, b_k))
+
+	#lam_max = int(1.1*eigenvalue^2)
+	return eigenvalue
+
+
+""" Calculates the gradients of the objective function with respect to parameters t and beta.
+
+	In other words, returns the gradients of 
+
+	Parameters
+	----------
+	t :  
+
+	X :  
+
+	y :  
+
+	XX : 
+
+	Xy :
+
+	Z :
+
+	lam :
+
+	delta :
+
+	beta :
+
+	c : 
+	
+	g1 :
+
+	g2 :
+
+	cg_maxiter :
+
+	cg_tol :
+
+	
+	Returns
+	-------
+	grad : 
+
+	beta : 
+
+	g1 : 
+
+	g2 :
+
+	Notes
+	-----
+	
+"""
 def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
 			  cg_maxiter=None,
 			  cg_tol=1e-5):
-	"""
-	Function to estimate gradient of f(t) via conjugate gradient
-	Here, XX = (X.T@X)/n, Xy = (X.T@y)/n, Z = XX - (delta/n) I
-
-	QQQQ Describe each argument QQQQ
-	
-	"""    
+	 
 	p = t.shape[0]
 	n = y.shape[0]
 	
@@ -99,7 +195,7 @@ def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
 
 	return grad, beta, c, g1, g2
 
-def beta_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
+def beta_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
 			  cg_maxiter=None,
 			  cg_tol=1e-5):
 	"""

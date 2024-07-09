@@ -4,6 +4,27 @@ from numpy.linalg import pinv, norm
 import time
 import helpers
 
+""" Transform data back to its original space.
+
+	In other words, return an input `X_original` whose transform would be X.
+
+	Parameters
+	----------
+	X : array-like of shape (n_samples, n_components)
+		New data, where `n_samples` is the number of samples
+		and `n_components` is the number of components.
+
+	Returns
+	-------
+	X_original array-like of shape (n_samples, n_features)
+		Original data, where `n_samples` is the number of samples
+		and `n_features` is the number of features.
+
+	Notes
+	-----
+	If whitening is enabled, inverse_transform will compute the
+	exact inverse operation, which includes reversing whitening.
+"""
 def ADAM_combss(X, y,  lam, t_init,
 		delta_frac = 1,
 		CG = True,
@@ -60,8 +81,6 @@ def ADAM_combss(X, y,  lam, t_init,
 	
 	count_to_term = 0
 	
-	# t_seq = []
-	# beta_seq = []
 	
 	for l in range(gd_maxiter):
 		M = np.nonzero(t)[0] ## Indices of t correponds to elements greater than eta. 
@@ -101,9 +120,6 @@ def ADAM_combss(X, y,  lam, t_init,
 
 		t_trun = t[M] 
 		
-		# t_seq.append(t.copy())
-		# beta_seq.append(beta)
-
 		if max_norm:
 			norm_t = max(np.abs(t - t_prev))
 			if l > 10000:
@@ -191,8 +207,6 @@ def BGD_combss(X, y, lam, t_init,
 	
 	count_to_term = 0
 	
-	# t_seq = []
-	# beta_seq = []
 	
 	for l in range(gd_maxiter):
 		
@@ -226,9 +240,6 @@ def BGD_combss(X, y, lam, t_init,
 		beta[M] = beta_trun
 
 		t_trun = t[M] 
-		
-		# t_seq.append(t.copy())
-		# beta_seq.append(beta)
 		
 		if max_norm:
 			norm_temp = max(np.abs(t - t_prev))
@@ -332,12 +343,7 @@ def combss_dynamicV0(X, y,
 		len_model = model.shape[0]
 
 		lam_list.append(lam)
-		# t_list.append(t_final)
-		# beta_list.append(beta)
-		# t_seq_list.append(t_seq)
-		# beta_seq_list.append(beta_seq)
 		model_list.append(model)
-		# converge_list.append(converge)
 		lam_vs_size.append(np.array((lam, len_model)))
 		count_lam += 1
 		print(len_model)
@@ -368,12 +374,9 @@ def combss_dynamicV0(X, y,
 				len_model = model.shape[0]
 
 				lam_list.append(lam)
-				# t_list.append(t_final)
-				# beta_list.append(beta)
-				# t_seq_list.append(t_seq)
-				# beta_seq_list.append(beta_seq)
+				t_list.append(t_final)
+				beta_list.append(beta)
 				model_list.append(model)
-				# converge_list.append(converge)
 				lam_vs_size.append(np.array((lam, len_model)))    
 				count_lam += 1
 

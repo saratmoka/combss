@@ -5,8 +5,6 @@ import time
 import helpers
 
 def ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5):
-	# To compensate for data types fed into Adam, otherwise the output will be of incorrect dimension.
-	#y = np.reshape(y, (-1,1))
 
 	# Initialising data-related variables
 	(n, p) = X.shape 
@@ -126,18 +124,10 @@ def combss_dynamicV1(X, y,
 
 	# Lists to store the findings
 	model_list = []
-	#model_seq_list = []
-	
-	# t_list = []
-	# t_seq_list = []
-	
-	# beta_list = []
-	# beta_seq_list = []
 	
 	lam_list = []
 	lam_vs_size = []
 	
-	# converge_list = []
 
 	lam = lam_max
 	count_lam = 0
@@ -151,21 +141,14 @@ def combss_dynamicV1(X, y,
 		len_model = model.shape[0]
 
 		lam_list.append(lam)
-		# t_list.append(t_final)
-		# beta_list.append(beta)
-		# t_seq_list.append(t_seq)
-		# beta_seq_list.append(beta_seq)
 		model_list.append(model)
-		# converge_list.append(converge)
 		lam_vs_size.append(np.array((lam, len_model)))
 		count_lam += 1
 		print(len_model)
 		if len_model >= q or count_lam > nlam*fstage_frac:
 			stop = True
 		lam = lam/2
-		#print('lam = ', lam, 'len of model = ', len_model)
 		
-
 
 	## Second pass on the dynamic lambda grid
 	stop = False
@@ -187,12 +170,7 @@ def combss_dynamicV1(X, y,
 				len_model = model.shape[0]
 
 				lam_list.append(lam)
-				# t_list.append(t_final)
-				# beta_list.append(beta)
-				# t_seq_list.append(t_seq)
-				# beta_seq_list.append(beta_seq)
 				model_list.append(model)
-				# converge_list.append(converge)
 				lam_vs_size.append(np.array((lam, len_model)))    
 				count_lam += 1
 
