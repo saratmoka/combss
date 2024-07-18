@@ -10,10 +10,10 @@ import helpers
 COMBSS Variant 2 Functions
 '''
 
-def grad_fn(X, y, t, beta, delta):
+def grad_fn(X, y, t, beta, delta, lam):
 	n = np.shape(X)[0]
 	bt = beta*t
-	return 1/n*y.T@y - (2/n)*(bt).T@(X.T@y) + (1/n)*(bt.T@((X.T@X)@bt))+(delta/n)*(beta.T@((1-t*t)*beta))
+	return 1/n*y.T@y - (2/n)*(bt).T@(X.T@y) + (1/n)*(bt.T@((X.T@X)@bt))+(delta/n)*(beta.T@((1-t*t)*beta)) + lam*np.sum(t)
 
 def obj_fn(X, y, t, delta, lam):
 	n = np.shape(X)[0]
@@ -76,23 +76,28 @@ def adam_w(X, y, beta, w0, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon =
 
 def BCD_COMBSS(X, y, lam, lam_max):
 	 
-	p = X.shape[1]
+	(n, p) = X.shape
 	
 	## One time operations
-	delta = lam_max
+	if (n > p):
+		A = X.T@X
+	else:
+		A = X@X.T
+	
+	# delta = helpers.gen_eta_max(A)
+	delta = n
+	print(f'delta: {delta}')
 	s = np.ones(p)
 	s_curr = np.zeros(p)
 	j = 0
 	
 	while not np.array_equal(s, s_curr):
-
+		
 		s_curr = s.copy()
 		N = np.where(s == 1)[0]
 		Xs = X[:, N]
-
+		# TODO: Replace with cg or ls, pytorch
 		beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
-
-	
 		beta = np.zeros(p)
   
 		beta[N] = beta_trun
@@ -105,8 +110,11 @@ def BCD_COMBSS(X, y, lam, lam_max):
 			s_1 = np.copy(s)
 			s_1[i] = 1
 
-			f_s0 = obj_fn(X, y, s_0, delta, lam)
-			f_s1 = obj_fn(X, y, s_1, delta, lam)
+			f_s0 = grad_fn(X, y, s_0, beta, delta, lam)
+			f_s1 = grad_fn(X, y, s_1, beta, delta, lam)
+
+			#f_s0 = obj_fn(X, y, s_0, delta, lam)
+			#f_s1 = obj_fn(X, y, s_1, delta, lam)
 
 			if (f_s0 < f_s1):
 				s[i] = 0
@@ -115,9 +123,10 @@ def BCD_COMBSS(X, y, lam, lam_max):
 
 			i += 1
 		j += 1
-	model = s
 
-	return model
+	model = np.where(s != 0)[0]
+
+	return s, model
 
 def combss_dynamicV2(X, y, 
 				   q = None,
@@ -146,7 +155,8 @@ def combss_dynamicV2(X, y,
 	if nlam == None:
 		nlam == n
 
-	lam_max = helpers.gen_lam_max(X.T@X) # max value for lambda
+	# max value for lambda
+	lam_max = y@y/n
 
 	# Lists to store the findings
 	model_list = []
@@ -162,7 +172,7 @@ def combss_dynamicV2(X, y,
 	stop = False
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	while not stop:
-		model = BCD_COMBSS(X, y, lam, lam_max)
+		t, model = BCD_COMBSS(X, y, lam, lam_max)
 
 		len_model = model.shape[0]
 
@@ -192,7 +202,7 @@ def combss_dynamicV2(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				model = BCD_COMBSS(X, y, lam, lam_max)
+				t, model = BCD_COMBSS(X, y, lam, lam_max)
 
 				len_model = model.shape[0]
 

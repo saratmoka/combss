@@ -58,19 +58,18 @@ def w_to_t(w):
 	return t
 
 
-def gen_lam_max(A):
+def gen_eta_max(A):
 	b_k = np.random.rand(A.shape[1])
 
 	for _ in range(1000):
-		b_ki = np.dot(A, b_k)
+		b_ki = A@b_k
 
 		b_ki_norm = np.linalg.norm(b_ki)
 		b_k = b_ki / b_ki_norm
 
-	eigenvalue = np.dot(b_k, np.dot(A, b_k))
+	eta_max = b_k@A@b_k
+	return eta_max
 
-	#lam_max = int(1.1*eigenvalue^2)
-	return eigenvalue
 
 
 """ Calculates the gradients of the objective function with respect to parameters t and beta.

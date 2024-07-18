@@ -4,21 +4,57 @@ from numpy.linalg import pinv, norm
 import time
 import helpers
 
-""" Transform data back to its original space.
 
-	In other words, return an input `X_original` whose transform would be X.
+""" The Adam optimiser for COMBSS.
+
 
 	Parameters
 	----------
-	X : array-like of shape (n_samples, n_components)
-		New data, where `n_samples` is the number of samples
-		and `n_components` is the number of components.
+	X : array-like of shape (n_samples, n_covariates)
+		The design matrix, where `n_samples` is the number of samples observed
+		and `n_covariates` is the number of covariates measured in each sample.
 
+	y : array-like of shape (n_samples)
+		The response data, where `n_samples` is the number of response elements.
+	
+	xi1 (Adam parameter) : float
+		The exponential decay rate for the first moment estimates in Adam. 
+		Default value = 0.9
+
+	xi2 (Adam parameter) : float
+		The exponential decay rate for the second-moment estimates.
+		Default value = 0.99
+
+	alpha (Adam parameter) : float
+		The learning rate for Adam.
+		Default value = 0.1
+
+	epsilon (Adam parameter) : float
+		A small number used to avoid numerical instability when dividing by 
+		very small numbers within Adam.
+		Default value = 1e-8
+
+	gd_maxiter (Gradient descent parameter) : int
+
+	gd_tol (Gradient descent parameter) : Adam
+
+	max_norm : Adam
+
+	epoch : Adam
+
+	tau : Adam
+
+	eta : Adam
+
+	cg_maxiter (Conjugate gradient parameter) : Adam
+
+	cg_tol (Conjugate gradient parameter) : Adam
 	Returns
 	-------
-	X_original array-like of shape (n_samples, n_features)
-		Original data, where `n_samples` is the number of samples
-		and `n_features` is the number of features.
+	t
+	model
+	converge
+	l+1
 
 	Notes
 	-----
@@ -374,8 +410,8 @@ def combss_dynamicV0(X, y,
 				len_model = model.shape[0]
 
 				lam_list.append(lam)
-				t_list.append(t_final)
-				beta_list.append(beta)
+				# t_list.append(t_final)
+				# beta_list.append(beta)
 				model_list.append(model)
 				lam_vs_size.append(np.array((lam, len_model)))    
 				count_lam += 1

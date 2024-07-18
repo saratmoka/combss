@@ -91,7 +91,7 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 		bulk_results[j, 1: nmetrics-2] = np.array(result2)
 		
 	df = pd.DataFrame(bulk_results, columns = names)
-	df.to_csv("./sim_scenario/version0/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+	df.to_csv("./bcd/version0/COMBSSV0a-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 	return
 
 #%%
@@ -249,5 +249,5 @@ def bulk_simV2(n, p, q, beta_type, K0, snr, corr,
 		bulk_results[j, 1: nmetrics-2] = np.array(result2)
 		
 	df = pd.DataFrame(bulk_results, columns = names)
-	df.to_csv("./sim_scenario/scenario1/COMBSSV2-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+	df.to_csv("./bcd/version2/COMBSSV2a-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 	return
