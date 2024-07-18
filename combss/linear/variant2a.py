@@ -10,6 +10,17 @@ import helpers
 COMBSS Variant 2 Functions
 '''
 
+def grad_fn(X, y, t, beta, delta, lam):
+	n = np.shape(X)[0]
+	bt = beta*t
+	return 1/n*y.T@y - (2/n)*(bt).T@(X.T@y) + (1/n)*(bt.T@((X.T@X)@bt))+(delta/n)*(beta.T@((1-t*t)*beta)) + lam*np.sum(t)
+
+def obj_fn(X, y, t, delta, lam):
+	n = np.shape(X)[0]
+	Xt = X*t
+	beta_tilde = (pinv(Xt.T@Xt + delta*(1-t*t)))@Xt.T@y
+	return (1/n)*(norm(y-Xt@beta_tilde))**2 + lam*np.sum(t)
+
 
 def adam_w(X, y, beta, w0, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e5, tol = 1e-5):
 
@@ -63,6 +74,60 @@ def adam_w(X, y, beta, w0, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon =
 	
 	return w_new, t_new, converge, i+1
 
+def BCD_COMBSS(X, y, lam, lam_max):
+	 
+	(n, p) = X.shape
+	
+	## One time operations
+	if (n > p):
+		A = X.T@X
+	else:
+		A = X@X.T
+	
+	# delta = helpers.gen_eta_max(A)
+	delta = n
+	print(f'delta: {delta}')
+	s = np.ones(p)
+	s_curr = np.zeros(p)
+	j = 0
+	
+	while not np.array_equal(s, s_curr):
+		
+		s_curr = s.copy()
+		N = np.where(s == 1)[0]
+		Xs = X[:, N]
+		# TODO: Replace with cg or ls, pytorch
+		beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
+		beta = np.zeros(p)
+  
+		beta[N] = beta_trun
+
+		i = 0
+		while i < np.shape(s)[0]:
+			s_0 = np.copy(s)
+			s_0[i] = 0
+
+			s_1 = np.copy(s)
+			s_1[i] = 1
+
+			f_s0 = grad_fn(X, y, s_0, beta, delta, lam)
+			f_s1 = grad_fn(X, y, s_1, beta, delta, lam)
+
+			#f_s0 = obj_fn(X, y, s_0, delta, lam)
+			#f_s1 = obj_fn(X, y, s_1, delta, lam)
+
+			if (f_s0 < f_s1):
+				s[i] = 0
+			else:
+				s[i] = 1
+
+			i += 1
+		j += 1
+
+	model = np.where(s != 0)[0]
+
+	return s, model
+
 def combss_dynamicV2(X, y, 
 				   q = None,
 				   nlam = None,
@@ -107,7 +172,7 @@ def combss_dynamicV2(X, y,
 	stop = False
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	while not stop:
-		t_final, model, converge, _, _, _ = adam_w(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
+		t, model = BCD_COMBSS(X, y, lam, lam_max)
 
 		len_model = model.shape[0]
 
@@ -137,7 +202,7 @@ def combss_dynamicV2(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				t_final, model, converge, _, _, _ = adam_w(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
+				t, model = BCD_COMBSS(X, y, lam, lam_max)
 
 				len_model = model.shape[0]
 
@@ -163,8 +228,8 @@ def combssV2(X_train, y_train, X_test, y_test,
 			gd_tol=1e-5,         # Tolerance of GD
 			cg_maxiter=None, # Maximum number of iterations allowed by CG
 			cg_tol=1e-5,     # Tolerance of CG
-			adam_maxiter=None, # Maximum number of iterations allowed by Adam
-			adam_tol = 10e-5): # Tolerance of Adam  
+            adam_maxiter=None, # Maximum number of iterations allowed by Adam
+            adam_tol = 10e-5): # Tolerance of Adam  
 	""" 
 	COMBSSV1 with SubsetMapV1
 	
