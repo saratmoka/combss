@@ -39,9 +39,8 @@ n_datasets = 2
 
 beta_type = 2
 
-snr_high_list = [3, 4, 5, 6, 7]
+snr_high_list = [5, 7]
 for snr in snr_high_list:
-    
     '''
     bulk_sim.bulk_simV0(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
@@ -51,7 +50,19 @@ for snr in snr_high_list:
                         eta = eta,
                         seed=1234)
     '''
+    
+    '''
     bulk_sim.bulk_simV2(n, p, q, beta_type, K0, snr, corr,
+                        t_init = t_init,
+                        delta_frac=delta_frac,
+                        n_datasets=n_datasets, 
+                        nlam=nlam,
+                        eta = eta,
+                        seed=1234)
+    '''
+    
+    
+    bulk_sim.bulk_simV2BCD(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
                         delta_frac=delta_frac,
                         n_datasets=n_datasets, 

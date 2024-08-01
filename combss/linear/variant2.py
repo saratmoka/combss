@@ -8,6 +8,10 @@ import helpers
 
 '''
 COMBSS Variant 2 Functions
+
+In this type of blockwise coordinate descent, we cyclically optimise over beta followed by w until the termination 
+condition from COMBSS Variant 0 is satisfied.
+
 '''
 
 

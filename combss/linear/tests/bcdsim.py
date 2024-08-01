@@ -29,7 +29,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 import variant0
 import variant1
-import variant2
+import combss.linear.variant2a as variant2a
 import metric
 np.set_printoptions(suppress=True)
 
@@ -150,7 +150,7 @@ def bulk_sim_given_dataV2(n, p, q, beta_type, K0, snr, corr,
 			n_tinit = 1
 		
 
-		result1 = variant2.combssV2(X_train, y_train, X_test, y_test, t_init=t_init[0], 
+		result1 = variant2a.combssV2(X_train, y_train, X_test, y_test, t_init=t_init[0], 
 						delta_frac=delta_frac,  q = q, nlam = nlam, eta=eta)
 		"""
 		Note that,
@@ -160,7 +160,7 @@ def bulk_sim_given_dataV2(n, p, q, beta_type, K0, snr, corr,
 		
 		for i in range(n_tinit-1):
 			
-			result_temp = variant2.combssV2(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
+			result_temp = variant2a.combssV2(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
 								 delta_frac=delta_frac, q = q, nlam = nlam, eta=eta)
 			
 			running_time += result_temp[4]

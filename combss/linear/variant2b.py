@@ -7,9 +7,9 @@ import helpers
 
 
 '''
-COMBSS Variant 2 Functions, Blockwise Type 2a
+COMBSS Variant 2 Functions, Blockwise Type 2b
 
-In this type of blockwise coordiante descent, we optimise over beta, then t t as the objective function is convex 
+In this type of blockwise coordinate descent, we optimise over beta, then t t as the objective function is convex 
 w.r.t t when delta is taken to be greater than the maximal eigenvalue of X.T@T provided a fixed value of beta.
 '''
 
@@ -30,22 +30,20 @@ def BCD_COMBSS(X, y, lam):
 		A = X@X.T
 	
 	delta = helpers.gen_eta_max(A)
-
 	s = np.ones(p)
 	s_curr = np.zeros(p)
 	j = 0
 	
+	N = np.where(s == 1)[0]
+	Xs = X[:, N]
+
+	beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
+	beta = np.zeros(p)
+	beta[N] = beta_trun
+	
 	while not np.array_equal(s, s_curr):
-		
 		s_curr = s.copy()
-		N = np.where(s == 1)[0]
-		Xs = X[:, N]
-
-		beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
-		beta = np.zeros(p)
-  
-		beta[N] = beta_trun
-
+		
 		i = 0
 		while i < np.shape(s)[0]:
 			s_0 = np.copy(s)
@@ -57,11 +55,27 @@ def BCD_COMBSS(X, y, lam):
 			f_s0 = obj_fn(X, y, s_0, beta, delta, lam)
 			f_s1 = obj_fn(X, y, s_1, beta, delta, lam)
 
-			if (f_s0 < f_s1):
+			if (f_s0 < f_s1 and s[i] != 0):
 				s[i] = 0
-			else:
-				s[i] = 1
 
+				N = np.where(s == 1)[0]
+				Xs = X[:, N]
+
+				beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
+
+				beta = np.zeros(p)
+				beta[N] = beta_trun
+
+			elif (f_s1 < f_s0 and s[i] != 1):
+				s[i] = 1
+				N = np.where(s == 1)[0]
+				Xs = X[:, N]
+
+				beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
+
+				beta = np.zeros(p)
+				beta[N] = beta_trun
+				
 			i += 1
 		j += 1
 
@@ -85,21 +99,20 @@ def BCD_COMBSS_CG(X, y, lam):
 	s_curr = np.zeros(p)
 	j = 0
 	
+	N = np.where(s == 1)[0]
+	Xs = X[:, N]
+
+	ps = Xs.shape[1]
+	XsTXs = Xs.T@Xs
+	cginv, _ = cg(XsTXs, np.ones(ps))
+
+	beta_trun = (cginv)@(Xs.T@y)
+	beta = np.zeros(p)
+	beta[N] = beta_trun
+	
 	while not np.array_equal(s, s_curr):
-		
 		s_curr = s.copy()
-		N = np.where(s == 1)[0]
-		Xs = X[:, N]
-
-		ps = Xs.shape[1]
-		XsTXs = Xs.T@Xs
-		cginv, _ = cg(XsTXs, np.ones(ps))
-
-		beta_trun = (cginv)@(Xs.T@y)
-		beta = np.zeros(p)
-  
-		beta[N] = beta_trun
-
+		
 		i = 0
 		while i < np.shape(s)[0]:
 			s_0 = np.copy(s)
@@ -111,11 +124,33 @@ def BCD_COMBSS_CG(X, y, lam):
 			f_s0 = obj_fn(X, y, s_0, beta, delta, lam)
 			f_s1 = obj_fn(X, y, s_1, beta, delta, lam)
 
-			if (f_s0 < f_s1):
+			if (f_s0 < f_s1 and s[i] != 0):
 				s[i] = 0
-			else:
-				s[i] = 1
 
+				N = np.where(s == 1)[0]
+				Xs = X[:, N]
+
+				ps = Xs.shape[1]
+				XsTXs = Xs.T@Xs
+				cginv, _ = cg(XsTXs, np.ones(ps))
+
+				beta_trun = (cginv)@(Xs.T@y)
+				beta = np.zeros(p)
+				beta[N] = beta_trun
+
+			elif (f_s1 < f_s0 and s[i] != 1):
+				s[i] = 1
+				N = np.where(s == 1)[0]
+				Xs = X[:, N]
+
+				ps = Xs.shape[1]
+				XsTXs = Xs.T@Xs
+				cginv, _ = cg(XsTXs, np.ones(ps))
+
+				beta_trun = (cginv)@(Xs.T@y)
+				beta = np.zeros(p)
+				beta[N] = beta_trun
+				
 			i += 1
 		j += 1
 
@@ -159,7 +194,6 @@ def combss_dynamicV2(X, y,
 	
 	lam_list = []
 	lam_vs_size = []
-	
 
 	lam = lam_max
 	count_lam = 0
@@ -168,7 +202,7 @@ def combss_dynamicV2(X, y,
 	stop = False
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	while not stop:
-		t, model = BCD_COMBSS(X, y, lam)
+		t, model = BCD_COMBSS_CG(X, y, lam)
 
 		len_model = model.shape[0]
 
@@ -198,7 +232,7 @@ def combss_dynamicV2(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				t, model = BCD_COMBSS(X, y, lam)
+				t, model = BCD_COMBSS_CG(X, y, lam)
 
 				len_model = model.shape[0]
 

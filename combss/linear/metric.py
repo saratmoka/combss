@@ -1,7 +1,40 @@
 import numpy as np
 from sklearn import metrics
 
+'''
+Evaluation metrics for COMBSS
+'''
 
+""" Computes the evaluation metrics for COMBSS.
+
+	Parameters
+	----------
+	data_X :  
+
+    beta_true :  
+
+    beta_pred :  
+
+	Returns
+	-------
+	pe : 
+
+    MCC : 
+
+    accuracy : 
+
+    sensitivity : 
+
+    specificity : 
+
+    f1_score :
+
+    precision :
+
+	Notes
+	-----
+	
+"""
 def performance_metrics(data_X, beta_true, beta_pred):
     """
     Function for computing performance metrics.

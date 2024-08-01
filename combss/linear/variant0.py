@@ -7,7 +7,6 @@ import helpers
 
 """ The Adam optimiser for COMBSS.
 
-
 	Parameters
 	----------
 	X : array-like of shape (n_samples, n_covariates)
@@ -19,47 +18,84 @@ import helpers
 	
 	xi1 (Adam parameter) : float
 		The exponential decay rate for the first moment estimates in Adam. 
-		Default value = 0.9
+		Default value = 0.9.
 
 	xi2 (Adam parameter) : float
 		The exponential decay rate for the second-moment estimates.
-		Default value = 0.99
+		Default value = 0.99.
 
 	alpha (Adam parameter) : float
 		The learning rate for Adam.
-		Default value = 0.1
+		Default value = 0.1.
 
 	epsilon (Adam parameter) : float
 		A small number used to avoid numerical instability when dividing by 
 		very small numbers within Adam.
-		Default value = 1e-8
+		Default value = 1e-8.
 
 	gd_maxiter (Gradient descent parameter) : int
+		The maximum number of iterations for gradient descent before the algorithm terminates.
+		Default value = 1e5.
 
-	gd_tol (Gradient descent parameter) : Adam
+	gd_tol (Gradient descent parameter) : float
+		The acceptable tolerance used for the termination condition in gradient descent.
+		Default value = 1e-5.
 
-	max_norm : Adam
+	max_norm : Boolean
+		Boolean value that signifies if max norm is used for the termination condition in gradient descent.
+		If max_norm is set to be True, the termination condition is evaluated using max norm. Otherwise, 
+		the L2 norm will be used instead.
+		Default value = True
 
-	epoch : Adam
+	epoch : int
+		The integer that specifies how many consecutive times the termination condiiton has to be satisfied
+		before the function terminates.
+		Default value = 10.
 
-	tau : Adam
 
-	eta : Adam
+	tau : float
+		The cutoff value for t that signifies its selection in the model. 
+		If t[i] > tau, the ith covariate is selected in the model. 
+		If t[i] < tau, the ith covariate is not selected in the model.
+		Default value = 0.5.
 
-	cg_maxiter (Conjugate gradient parameter) : Adam
+	eta : float
+		The parameter that dictates the upper limit used for truncating matrices.
+		If the value of t[i] is less than eta, t[i] will be approximated to zero,
+		and the ith column of X will be removed to improve algorithm perfomance.
+		Default value = 0.
 
-	cg_tol (Conjugate gradient parameter) : Adam
+	cg_maxiter (Conjugate gradient parameter) : int
+		The maximum number of iterations for the conjugate gradient algortihm used 
+		to approximate the gradient of the function with respect to t and the gradient 
+		of the objective function with respect to beta before the conjugate gradient 
+		algorithm terminates.
+		Default value = 1e5
+
+	cg_tol (Conjugate gradient parameter) : float
+		The acceptable tolerance used for the termination condition in the conjugate gradient 
+		algortihms used to approximate the gradient of the function with respect to t and the 
+		gradient of the objective function with respect to beta.
+
+
 	Returns
 	-------
-	t
-	model
-	converge
-	l+1
+	t : array-like of shape (n_covariates)
+		The array of t values at the conclusion of Adam.
 
-	Notes
-	-----
-	If whitening is enabled, inverse_transform will compute the
-	exact inverse operation, which includes reversing whitening.
+	model : array-like of integers
+		The final chosen model, in the form of an array of integers that correspond to the 
+		indicies chosen after performing Adam.
+
+	converge : Boolean 
+		Boolean value that signifies if the gradient descent algorithm converged by it's 
+		termination conditions (converge = True), or if it exhausted its maximum iterations 
+		(converge = False).
+
+	l+1 : int
+		The number of iterations of the gradient descent loop executed by the algorithm. 
+		If the algorithm reaches the maximum number of iterations provided into the function, 
+		l = gd_maxiter.
 """
 def ADAM_combss(X, y,  lam, t_init,
 		delta_frac = 1,
@@ -184,7 +220,6 @@ def ADAM_combss(X, y,  lam, t_init,
 		t_prev = t.copy()
 	
 	model = np.where(t > tau)[0]
-	print(f'conjugate gradient iteration: {l}')
 
 	if l+1 < gd_maxiter:
 		converge = True
@@ -192,6 +227,8 @@ def ADAM_combss(X, y,  lam, t_init,
 		converge = False
 	return  t, model, converge, l+1
 
+""" Basic Gradient Descent for COMBSS.
+"""
 def BGD_combss(X, y, lam, t_init,
 		delta_frac = 1,
 		
@@ -308,6 +345,82 @@ def BGD_combss(X, y, lam, t_init,
 		converge = False
 	return  t, model, converge, l+1
 
+""" Dynamically performs Adam for COMBSS over a grid of lambdas to retrieve model of the desired size.
+
+	Parameters
+	----------
+	X : array-like of shape (n_samples, n_covariates)
+		The design matrix, where `n_samples` is the number of samples observed
+		and `n_covariates` is the number of covariates measured in each sample.
+
+	y : array-like of shape (n_samples)
+		The response data, where `n_samples` is the number of response elements.
+	
+	q : int
+		The maximum model size of interest. If q is not provided, it is taken to be n.
+		Default value = None.
+
+	nlam (Adam parameter) : float
+		The number of lambdas explored in the dynamic grid.
+		Default value = None.
+
+	t_init : array-like of integers
+		The initial values of t passed into Adam.
+		Default value = [].
+
+	tau (Adam parameter) : float
+		The cutoff value for t that signifies its selection in the model. 
+		If t[i] > tau, the ith covariate is selected in the model. 
+		If t[i] < tau, the ith covariate is not selected in the model.
+		Default value = 0.5.
+
+	delta_frac : float
+ 		The value of n/delta as found in the objective function for COMBSS.
+		Default value = 1.
+
+	fstage_frac : float
+		The fraction of lambda values explored in first stage of dynamic grid.
+		Default value = 0.5.
+
+	eta : float
+		The parameter that dictates the upper limit used for truncating matrices.
+		If the value of t[i] is less than eta, t[i] will be approximated to zero,
+		and the ith column of X will be removed to improve algorithm perfomance.
+		Default value = 0.
+
+	epoch : int
+		The integer that specifies how many consecutive times the termination condiiton has to be satisfied
+		before the function terminates.
+		Default value = 10.
+
+	gd_maxiter (Gradient descent parameter) : int
+		The maximum number of iterations for gradient descent before the algorithm terminates.
+		Default value = 1e5.
+
+	gd_tol (Gradient descent parameter) : float
+		The acceptable tolerance used for the termination condition in gradient descent.
+		Default value = 1e-5.
+
+	cg_maxiter (Conjugate gradient parameter) : int
+		The maximum number of iterations for the conjugate gradient algortihm used 
+		to approximate the gradient of the function with respect to t and the gradient 
+		of the objective function with respect to beta before the conjugate gradient 
+		algorithm terminates.
+		Default value = 1e5
+
+	cg_tol (Conjugate gradient parameter) : float
+		The acceptable tolerance used for the termination condition in the conjugate gradient 
+		algortihms used to approximate the gradient of the function with respect to t and the 
+		gradient of the objective function with respect to beta.
+
+
+	Returns
+	-------
+	model_list : array-like of 
+
+	lam_list : array-like
+
+"""
 def combss_dynamicV0(X, y, 
 				   q = None,
 				   nlam = None,
@@ -420,6 +533,89 @@ def combss_dynamicV0(X, y,
 	
 	return  (model_list, lam_list)
 
+""" Dynamically performs Adam for COMBSS over a grid of lambdas to retrieve model of the desired size.
+
+	Parameters
+	----------
+	X_train : array-like of shape (n_samples, n_covariates)
+		The design matrix used for training, where `n_samples` is the number of samples 
+		observed and `n_covariates` is the number of covariates measured in each sample.
+
+	y_train : array-like of shape (n_samples)
+		The response data used for training, where `n_samples` is the number of response elements.
+
+	X_test : array-like of shape (n_samples, n_covariates)
+		The design matrix used for testing, where `n_samples` is the number of samples 
+		observed and `n_covariates` is the number of covariates measured in each sample.
+
+	y_test : array-like of shape (n_samples)
+	The response data used for testing, where `n_samples` is the number of response elements.	
+
+	q : int
+		The maximum model size of interest. If q is not provided, it is taken to be n.
+		Default value = None.
+
+	nlam (Adam parameter) : float
+		The number of lambdas explored in the dynamic grid.
+		Default value = None.
+
+	t_init : array-like of integers
+		The initial values of t passed into Adam.
+		Default value = [].
+
+	tau (Adam parameter) : float
+		The cutoff value for t that signifies its selection in the model. 
+		If t[i] > tau, the ith covariate is selected in the model. 
+		If t[i] < tau, the ith covariate is not selected in the model.
+		Default value = 0.5.
+
+	delta_frac : float
+ 		The value of n/delta as found in the objective function for COMBSS.
+		Default value = 1.
+
+	fstage_frac : float
+		The fraction of lambda values explored in first stage of dynamic grid.
+		Default value = 0.5.
+
+	eta : float
+		The parameter that dictates the upper limit used for truncating matrices.
+		If the value of t[i] is less than eta, t[i] will be approximated to zero,
+		and the ith column of X will be removed to improve algorithm perfomance.
+		Default value = 0.
+
+	epoch : int
+		The integer that specifies how many consecutive times the termination condiiton has to be satisfied
+		before the function terminates.
+		Default value = 10.
+
+	gd_maxiter (Gradient descent parameter) : int
+		The maximum number of iterations for gradient descent before the algorithm terminates.
+		Default value = 1e5.
+
+	gd_tol (Gradient descent parameter) : float
+		The acceptable tolerance used for the termination condition in gradient descent.
+		Default value = 1e-5.
+
+	cg_maxiter (Conjugate gradient parameter) : int
+		The maximum number of iterations for the conjugate gradient algortihm used 
+		to approximate the gradient of the function with respect to t and the gradient 
+		of the objective function with respect to beta before the conjugate gradient 
+		algorithm terminates.
+		Default value = 1e5
+
+	cg_tol (Conjugate gradient parameter) : float
+		The acceptable tolerance used for the termination condition in the conjugate gradient 
+		algortihms used to approximate the gradient of the function with respect to t and the 
+		gradient of the objective function with respect to beta.
+
+
+	Returns
+	-------
+	model_list : array-like of 
+
+	lam_list : array-like
+
+"""
 def combssV0(X_train, y_train, X_test, y_test, 
 			q = None,           # maximum model size
 			nlam = 50,        # number of values in the lambda grid
