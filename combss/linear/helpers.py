@@ -10,17 +10,16 @@ from sklearn.linear_model import Ridge
 Helper functions for COMBSS
 '''
 
-""" Transform t to w using a sigmoid mapping.
-
-	In other words, return an input `X_original` whose transform would be X.
+""" Transform t to w using a sigmoid mapping. Used for interchanging between functions 
+	that use t for model selection, and w for unconstrainted optimisation.
 
 	Parameters
 	----------
-	t :  
+	t :  integer
 
 	Returns
 	-------
-	w : 
+	w : integer
 
 	Notes
 	-----
@@ -28,36 +27,40 @@ Helper functions for COMBSS
 """
 def t_to_w(t):
 	"""
-	Function to convert t to w, and it is used in converting box-constraint problem to an unconstraint one.
+	Function to convert t to w, and it is used in converting box-constraint problem to an unconstrained one.
 	"""
 	w = np.log(t/(1-t))
 	return w
 
 
-""" Transform w to t using a logit mapping.
-
-	In other words, return an input `X_original` whose transform would be X.
+""" Transform w to t using a logit mapping. Used for interchanging between functions 
+	that use w for unconstrainted optimisation, and t for model selection.
 
 	Parameters
 	----------
-	w :  
+	w : integer
 
 	Returns
 	-------
-	t : 
-
-	Notes
-	-----
-	
+	t : integer
 """
+
 def w_to_t(w):
-	"""
-	Function to convert w to t, and it is used in converting solution of the unconstraint problem to the constrained case.
-	"""  
 	t = 1/(1+np.exp(-w))
 	return t
 
 
+""" Transform w to t using a logit mapping. Used for interchanging between functions 
+	that use w for unconstrainted optimisation, and t for model selection.
+
+	Parameters
+	----------
+	w : integer
+
+	Returns
+	-------
+	t : integer
+"""
 def gen_eta_max(A):
 	b_k = np.random.rand(A.shape[1])
 

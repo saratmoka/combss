@@ -43,8 +43,7 @@ for snr in snr_low_list:
     version0.update({"Time": avg_TimeV0})
 
 
-    df1 = pd.read_csv("./sim_scenario/scenario1/COMBSSV2-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
-
+    df1 = pd.read_csv("./sim_scenario/scenario1/archived/COMBSSV2-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
     version1 = {}
     avg_MSEV1 = df1['MSE'].mean()
     avg_PEV1 = df1['PE'].mean()

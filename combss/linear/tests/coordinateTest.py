@@ -21,7 +21,7 @@ np.set_printoptions(suppress=True)
 
 # %%
 n = 100
-p = 1000
+p = 20
 q = 20
 
 K0 = 10
@@ -35,12 +35,13 @@ ninit = len(t_init)
 nlam = 25
 
 delta_frac = 1
-n_datasets = 2
+n_datasets = 5
 
 beta_type = 2
 
-snr_high_list = [5, 7]
+snr_high_list = [3, 5, 7]
 for snr in snr_high_list:
+
     '''
     bulk_sim.bulk_simV0(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
@@ -51,25 +52,12 @@ for snr in snr_high_list:
                         seed=1234)
     '''
     
-    
-    bulk_sim.bulk_simV2(n, p, q, beta_type, K0, snr, corr,
+    bulk_sim.bulk_simV3(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
                         delta_frac=delta_frac,
                         n_datasets=n_datasets, 
                         nlam=nlam,
                         eta = eta,
                         seed=1234)
-    
-    
-    '''
-    bulk_sim.bulk_simV2BCD(n, p, q, beta_type, K0, snr, corr,
-                        t_init = t_init,
-                        delta_frac=delta_frac,
-                        n_datasets=n_datasets, 
-                        nlam=nlam,
-                        eta = eta,
-                        seed=1234)
-    '''
-    
 
 #%%

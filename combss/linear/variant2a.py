@@ -33,18 +33,17 @@ def BCD_COMBSS(X, y, lam):
 
 	s = np.ones(p)
 	s_curr = np.zeros(p)
-	j = 0
+
+	N = np.where(s == 1)[0]
+	Xs = X[:, N]
+
+	beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
+	beta = np.zeros(p)
+	beta[N] = beta_trun
 	
 	while not np.array_equal(s, s_curr):
 		
 		s_curr = s.copy()
-		N = np.where(s == 1)[0]
-		Xs = X[:, N]
-
-		beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
-		beta = np.zeros(p)
-  
-		beta[N] = beta_trun
 
 		i = 0
 		while i < np.shape(s)[0]:
@@ -63,7 +62,13 @@ def BCD_COMBSS(X, y, lam):
 				s[i] = 1
 
 			i += 1
-		j += 1
+		
+		N = np.where(s == 1)[0]
+		Xs = X[:, N]
+
+		beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
+		beta = np.zeros(p)
+		beta[N] = beta_trun
 
 	model = np.where(s != 0)[0]
 

@@ -23,16 +23,14 @@ def BCD_COMBSS(X, y, lam):
 	 
 	(n, p) = X.shape
 	
-	## One time operations
 	if (n > p):
 		A = X.T@X
 	else:
 		A = X@X.T
 	
-	delta = helpers.gen_eta_max(A)
+	delta = int(1.1*helpers.gen_eta_max(A))
 	s = np.ones(p)
 	s_curr = np.zeros(p)
-	j = 0
 	
 	N = np.where(s == 1)[0]
 	Xs = X[:, N]
@@ -55,29 +53,23 @@ def BCD_COMBSS(X, y, lam):
 			f_s0 = obj_fn(X, y, s_0, beta, delta, lam)
 			f_s1 = obj_fn(X, y, s_1, beta, delta, lam)
 
+			update = False
+
 			if (f_s0 < f_s1 and s[i] != 0):
+				update = True
 				s[i] = 0
-
-				N = np.where(s == 1)[0]
-				Xs = X[:, N]
-
-				beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
-
-				beta = np.zeros(p)
-				beta[N] = beta_trun
-
 			elif (f_s1 < f_s0 and s[i] != 1):
+				update = True
 				s[i] = 1
+			
+			if update:
+				print(f'Update: s: {s}')
 				N = np.where(s == 1)[0]
 				Xs = X[:, N]
-
 				beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
-
 				beta = np.zeros(p)
 				beta[N] = beta_trun
-				
 			i += 1
-		j += 1
 
 	model = np.where(s != 0)[0]
 
@@ -94,7 +86,7 @@ def BCD_COMBSS_CG(X, y, lam):
 	else:
 		A = X@X.T
 	
-	delta = helpers.gen_eta_max(A)
+	delta = int(1.1*helpers.gen_eta_max(A))
 	s = np.ones(p)
 	s_curr = np.zeros(p)
 	j = 0
@@ -202,7 +194,7 @@ def combss_dynamicV2(X, y,
 	stop = False
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	while not stop:
-		t, model = BCD_COMBSS_CG(X, y, lam)
+		t, model = BCD_COMBSS(X, y, lam)
 
 		len_model = model.shape[0]
 
@@ -232,7 +224,7 @@ def combss_dynamicV2(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				t, model = BCD_COMBSS_CG(X, y, lam)
+				t, model = BCD_COMBSS(X, y, lam)
 
 				len_model = model.shape[0]
 
