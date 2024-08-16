@@ -8,18 +8,22 @@ import helpers
 
 '''
 COMBSS Variant 2 Functions, Blockwise Type 2b
-
-In this type of blockwise coordinate descent, we optimise over beta, then t t as the objective function is convex 
-w.r.t t when delta is taken to be greater than the maximal eigenvalue of X.T@T provided a fixed value of beta.
 '''
 
 
-def obj_fn(X, y, t, delta, lam):
+def obj_fn(X, y, t, lam):
 	(n,p) = X.shape
-	Xt = t*X
-	bt = (pinv(Xt.T@Xt + delta*(1-t*t)*np.eye(p)))@(Xt.T@y)
-	n = np.shape(X)[0]
-	return 1/n*((y-Xt@bt).T@(y-Xt@bt)) + lam*np.sum(t)
+	S = np.nonzero(t)[0]
+
+	if len(S) == 0:
+		obj = 1/n*(y.T@y) + lam*np.sum(t)
+	else:
+		Xs = X[:,S]
+		bt = pinv(Xs.T@Xs)@(Xs.T@y)
+		n = np.shape(X)[0]
+		obj = 1/n*((y-Xs@bt).T@(y-Xs@bt)) + lam*np.sum(t)
+
+	return obj
 
 
 """ The Adam optimiser for COMBSS.
@@ -113,17 +117,13 @@ def obj_fn(X, y, t, delta, lam):
 		If the algorithm reaches the maximum number of iterations provided into the function, 
 		l = gd_maxiter.
 """
-def iterate_combss(X, y,  lam, t_init, delta_frac = 1):
+def iterate_combss(X, y, lam, t_init):
 	"""
 	Implementation of the ADAM optimizer for combss. 
-	"""    
-	(n, p) = X.shape
-	
-	## One time operations
-	delta = delta_frac*n
+	"""    	
 	# t_init doesnt work when t = t_init
 	t = t_init.copy()
-	t_curr = np.zeros_like(t)
+	t_curr = np.ones_like(t)
 
 	
 	while not np.array_equal(t, t_curr):
@@ -136,135 +136,18 @@ def iterate_combss(X, y,  lam, t_init, delta_frac = 1):
 			t_1 = np.copy(t)
 			t_1[i] = 1
 
-			f_t0 = obj_fn(X, y, t_0, delta, lam)
-			f_t1 = obj_fn(X, y, t_1, delta, lam)
+			f_t0 = obj_fn(X, y, t_0, lam)
+			f_t1 = obj_fn(X, y, t_1, lam)
 
 			if (f_t0 < f_t1):
 				t[i] = 0
 			elif (f_t1 < f_t0):
-				t[i] = 1				
+				t[i] = 1	
 
 	model = np.where(t != 0)[0]
 
 	return t, model
 
-""" Basic Gradient Descent for COMBSS.
-"""
-def BGD_combss(X, y, lam, t_init,
-		delta_frac = 1,
-		
-		## BGD parameters           
-		alpha = 0.1, 
-		epsilon = 10e-8,
-		
-		## Parameters for Termination
-		gd_tol = 1e-5,
-		gd_maxiter = 1e5,
-		max_norm = True,
-		epoch = 10,
-		
-		## Truncation parameters
-		tau = 0.5,
-		eta = 0.0, 
-		
-		## Parameters for Conjugate Gradient method
-		cg_maxiter = None,
-		cg_tol = 1e-5):
-	"""
-	Implementation of the Basic Gradient Descent (BGD) for best model selection.  
-	We do not use this for the simulations in the paper.
-	"""
-
-	(n, p) = X.shape
-	
-	## One time operations
-	delta = delta_frac*n
-	Xy = (X.T@y)/n
-	XX = (X.T@X)/n
-	Z = XX.copy()
-	np.fill_diagonal(Z, np.diagonal(Z) - (delta/n))
-	
-	## Initialization
-	t = t_init.copy()
-		
-	w = helpers.t_to_w(t)
-	
-	t_trun = t.copy()
-	t_prev = t.copy()
-	active = p
-	
-	beta_trun = np.zeros(p)  
-
-	c = np.zeros(p)
-	g1 = np.zeros(n)
-	g2 = np.zeros(n)
-	
-	count_to_term = 0
-	
-	
-	for l in range(gd_maxiter):
-		
-		M = np.nonzero(t)[0] ## Indices of t correponds to elements greater than eta. 
-		M_trun = np.nonzero(t_trun)[0] 
-		active_new = M_trun.shape[0]
-		
-		if active_new != active:
-			## Find the effective set by removing the columns and rows corresponds to zero t's
-			XX = XX[M_trun][:, M_trun]
-			Z = Z[M_trun][:, M_trun]
-			X = X[:, M_trun]
-			Xy = Xy[M_trun]
-			active = active_new
-			t_trun = t_trun[M_trun]
-		
-		## Compute gradient for the effective terms
-		grad_trun, beta_trun, c, g1, g2 = helpers.f_grad_cg(t_trun, X, y, XX, Xy, Z, lam, delta, beta_trun[M_trun],  c[M_trun], g1, g2)
-		w_trun = w[M]
-		grad_trun = 2*grad_trun*(w_trun*np.exp(- w_trun*w_trun))
-		
-		## BGD Updates
-		w_trun = w_trun - alpha*grad_trun 
-		w[M] = w_trun
-		t[M] = helpers.w_to_t(w_trun)
-		
-		w[t <= eta] = 0.0
-		t[t <= eta] = 0.0
-		
-		beta = np.zeros(p)
-		beta[M] = beta_trun
-
-		t_trun = t[M] 
-		
-		if max_norm:
-			norm_temp = max(np.abs(t - t_prev))
-			if norm_temp <= gd_tol:
-				count_to_term += 1
-				if count_to_term >= epoch:
-					break
-			else:
-				count_to_term = 0
-				
-		else:
-			norm_t = norm(t)
-			if norm_t == 0:
-				break
-			
-			elif norm(t_prev - t)/norm_t <= gd_tol:
-				count_to_term += 1
-				if count_to_term >= epoch:
-					break
-			else:
-				count_to_term = 0
-		t_prev = t.copy()
-	
-	
-	model = np.where(t > tau)[0]
-
-	if l+1 < gd_maxiter:
-		converge = True
-	else:
-		converge = False
-	return  t, model, converge, l+1
 
 """ Dynamically performs Adam for COMBSS over a grid of lambdas to retrieve model of the desired size.
 
@@ -409,11 +292,7 @@ def combss_dynamicV4(X, y,
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	i = 0
 	while not stop:
-		print(f'i: {i}')
-		print(f't_init = {t_init}')
-		t_final, model = iterate_combss(X, y, lam, t_init=t_init, delta_frac=delta_frac)
-		print("a")
-		print(f'lam: {lam}')
+		t_final, model = iterate_combss(X, y, lam, t_init=t_init)
 		len_model = model.shape[0]
 
 		lam_list.append(lam)
@@ -432,7 +311,6 @@ def combss_dynamicV4(X, y,
 	stop = False
 	#print('Second pass of lambda grid is running')
 	while not stop:
-		print("b")
 		temp = np.array(lam_vs_size)
 		order = np.argsort(temp[:, 1])
 		lam_vs_size_ordered = np.flip(temp[order], axis=0)        
@@ -444,7 +322,7 @@ def combss_dynamicV4(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				t_final, model = iterate_combss(X, y, lam, t_init=t_init, delta_frac=delta_frac)
+				t_final, model = iterate_combss(X, y, lam, t_init=t_init)
 
 				len_model = model.shape[0]
 

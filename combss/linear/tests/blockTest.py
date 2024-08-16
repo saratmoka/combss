@@ -35,28 +35,16 @@ ninit = len(t_init)
 nlam = 25
 
 delta_frac = 1
-n_datasets = 25
+n_datasets = 2
 
-beta_list = [1,2]
+beta_list = [1]
 
-snr_high_list = [6, 7, 8]
+snr_high_list = [3,5,7]
 for snr in snr_high_list:
 
     for beta_type in beta_list:
-
-        t_init = [np.ones(p)*0.5]
-
-        bulk_sim.bulk_simV0(n, p, q, beta_type, K0, snr, corr,
-                            t_init = t_init,
-                            delta_frac=delta_frac,
-                            n_datasets=n_datasets, 
-                            nlam=nlam,
-                            eta = eta,
-                            seed=1234)
         
-        t_init = [np.zeros(p)]
-
-        bulk_sim.bulk_simV4(n, p, q, beta_type, K0, snr, corr,
+        bulk_sim.bulk_simV2BCD(n, p, q, beta_type, K0, snr, corr,
                             t_init = t_init,
                             delta_frac=delta_frac,
                             n_datasets=n_datasets, 

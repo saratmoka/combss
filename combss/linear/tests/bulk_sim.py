@@ -34,7 +34,7 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 	
 	nmetrics = len(metrics)
 
-	file_path = "./coordinateTests/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
+	file_path = "./coordinateFriday/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
 
 	with open(file_path, 'w', newline='') as f:
 		writer = csv.writer(f)
@@ -97,7 +97,6 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 			print("Error: wrong case!")
 			
 		result2 = metric.performance_metrics(X_test, beta_true, beta_pred)
-		print(result2)
 		result_row[1: nmetrics-2] = np.array(result2)
 
 		with open(file_path, 'a', newline='') as f:
@@ -285,7 +284,7 @@ def bulk_simV2BCD(n, p, q, beta_type, K0, snr, corr,
 	
 	nmetrics = len(metrics)
 
-	file_path = "./BCD-Block/COMBSSV2-BCD_7-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
+	file_path = "./BCD-Block/COMBSSV2-BCD_Friday-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
 
 	with open(file_path, 'w', newline='') as f:
 		writer = csv.writer(f)
@@ -309,7 +308,7 @@ def bulk_simV2BCD(n, p, q, beta_type, K0, snr, corr,
 		running_time = 0
 		
 		if n_tinit == 0:
-			t_init = [np.ones(p)*0.5]
+			t_init = [np.zeros(p)]
 			n_tinit = 1
 		
 
@@ -348,6 +347,7 @@ def bulk_simV2BCD(n, p, q, beta_type, K0, snr, corr,
 			print("Error: wrong case!")
 			
 		result2 = metric.performance_metrics(X_test, beta_true, beta_pred)
+		print(result2)
 		result_row[1: nmetrics-2] = np.array(result2)
 		
 		with open(file_path, 'a', newline='') as f:
@@ -454,7 +454,7 @@ def bulk_simV4(n, p, q, beta_type, K0, snr, corr,
 	
 	nmetrics = len(metrics)
 
-	file_path = "./coordinateTests/COMBSSV4-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
+	file_path = "./coordinateFriday/COMBSSV4-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
 
 	with open(file_path, 'w', newline='') as f:
 		writer = csv.writer(f)
@@ -517,7 +517,6 @@ def bulk_simV4(n, p, q, beta_type, K0, snr, corr,
 			print("Error: wrong case!")
 			
 		result2 = metric.performance_metrics(X_test, beta_true, beta_pred)
-		print(result2)
 		result_row[1: nmetrics-2] = np.array(result2)
 
 		with open(file_path, 'a', newline='') as f:

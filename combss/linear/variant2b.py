@@ -16,7 +16,16 @@ w.r.t t when delta is taken to be greater than the maximal eigenvalue of X.T@T p
 def obj_fn(X, y, t, beta, delta, lam):
 	n = np.shape(X)[0]
 	bt = beta*t
-	return 1/n*y.T@y - (2/n)*(bt).T@(X.T@y) + (1/n)*(bt.T@((X.T@X)@bt))+(delta/n)*(beta.T@((1-t*t)*beta)) + lam*np.sum(t)
+	
+	S = np.nonzero(t)[0]
+	print(f'length of t: {len(t)}')
+	print(f'nonzero elements: {len(S)}')
+
+	if len(S) == 0:
+		obj = 1/n*(y.T@y) + lam*np.sum(t)
+	else:
+		obj = 1/n*y.T@y - (2/n)*(bt).T@(X.T@y) + (1/n)*(bt.T@((X.T@X)@bt))+(delta/n)*(beta.T@((1-t*t)*beta)) + lam*np.sum(t)
+	return obj
 
 
 def BCD_COMBSS(X, y, lam):
@@ -29,8 +38,8 @@ def BCD_COMBSS(X, y, lam):
 		A = X@X.T
 	
 	delta = int(1.1*helpers.gen_eta_max(A))
-	s = np.ones(p)
-	s_curr = np.zeros(p)
+	s = np.zeros(p)
+	s_curr = np.ones(p)
 	
 	N = np.where(s == 1)[0]
 	Xs = X[:, N]
@@ -58,17 +67,20 @@ def BCD_COMBSS(X, y, lam):
 			if (f_s0 < f_s1 and s[i] != 0):
 				update = True
 				s[i] = 0
+				print(f'obj function: {f_s0}, s[{i}] = 0')
 			elif (f_s1 < f_s0 and s[i] != 1):
 				update = True
 				s[i] = 1
+				print(f'obj function: {f_s1}, s[{i}] = 1')
+
 			
 			if update:
-				print(f'Update: s: {s}')
 				N = np.where(s == 1)[0]
 				Xs = X[:, N]
-				beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
 				beta = np.zeros(p)
-				beta[N] = beta_trun
+				if len(N) != 0:
+					beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
+					beta[N] = beta_trun
 			i += 1
 
 	model = np.where(s != 0)[0]
