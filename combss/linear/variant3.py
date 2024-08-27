@@ -4,6 +4,9 @@ from numpy.linalg import pinv, norm
 import time
 import helpers
 
+'''
+COMBSS Variant 3: Pure Coordinate Descent
+'''
 
 """ The Adam optimiser for COMBSS.
 
@@ -98,7 +101,7 @@ import helpers
 """
 def CD_combss(X, y,  lam, t_init,
 		delta_frac = 1,
-		learning_rate = 0.1,
+		learning_rate = 0.001,
 			 
 		## Parameters for Termination
 		cd_maxiter = 1e5,
@@ -127,15 +130,12 @@ def CD_combss(X, y,  lam, t_init,
 	
 	## Initialization
 	t = t_init.copy()
-		
-	w = helpers.t_to_w(t)
-	
-	t_trun = t.copy()
 	t_prev = t.copy()
-	active = p
-	
-	beta_trun = np.zeros(p)  
 
+	w = helpers.t_to_w(t)
+
+	beta = np.zeros(p)  
+	
 	c = np.zeros(p)
 	g1 = np.zeros(n)
 	g2 = np.zeros(n)
@@ -143,55 +143,31 @@ def CD_combss(X, y,  lam, t_init,
 	count_to_term = 0
 	
 	for l in range(cd_maxiter):
-		M = np.nonzero(t)[0] ## Indices of t correponds to elements greater than eta. 
-		M_trun = np.nonzero(t_trun)[0] 
-		active_new = M_trun.shape[0]
-		
-		if active_new != active:
-			## Find the effective set by removing the columns and rows corresponds to zero t's
-			XX = XX[M_trun][:, M_trun]
-			Z = Z[M_trun][:, M_trun]
-			X = X[:, M_trun]
-			Xy = Xy[M_trun]
-			active = active_new
-			t_trun = t_trun[M_trun]
 		
 		## Perform coordinate descent
 
-		for i in range(len(t_trun)):
-			M = np.nonzero(t)[0] ## Indices of t correponds to elements greater than eta. 
-			w_grad_trun, beta_trun, c, g1, g2 = helpers.f_grad_cg(t_trun, X, y, XX, Xy, Z, lam, delta, beta_trun[M_trun],  c[M_trun], g1, g2, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
-			w_trun = w[M]
-			print(t_trun)
-			t_grad_trun = w_grad_trun*(helpers.w_to_t(w_trun)*(1 - helpers.w_to_t(w_trun)))	
-			for _ in range(10000):
-				t_trun[i] -= 0.0001 * t_grad_trun[i]
-				print(f't_trun[i]: {t_trun[i]}')
-				print(f't_grad_trun[i]: {t_grad_trun[i]}')
-				w_grad_trun, beta_trun, c, g1, g2 = helpers.f_grad_cg(t_trun, X, y, XX, Xy, Z, lam, delta, beta_trun[M_trun],  c[M_trun], g1, g2, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
-				w_trun = w[M]
-				t_grad_trun = w_grad_trun*(helpers.w_to_t(w_trun)*(1 - helpers.w_to_t(w_trun)))
-				if abs(t_grad_trun[i]) < 10e-8:
+		for i in range(len(t)):
+			w_grad, beta, c, g1, g2 = helpers.f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta, c, g1, g2, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
+			for _ in range(100):
+				w[i] -= learning_rate * w_grad[i]
+				t = helpers.w_to_t(w)
+				if abs(w[i]) > 20:
 					break
+				w_grad, beta, c, g1, g2 = helpers.f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta, c, g1, g2, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
 			
-		w[M] = w_trun
-		t[M] = helpers.w_to_t(w_trun)
 
-		w[t <= eta] = -np.inf
-		t[t <= eta] = 0.0
-		
-		beta = np.zeros(p)
-		beta[M] = beta_trun
+			'''
+			S = np.nonzero(t)[0]
 
-		t_trun = t[M] 
-
-
-		print(f'len(t_trun): {len(t_trun)}')
-		print(f'shape(t_trun): {t_trun.shape}')
-		print(f'shape(w_grad_trun): {w_grad_trun.shape}')
-		print(f'M: {M}')
-		print(f'(helpers.w_to_t(w_trun)*(1 - helpers.w_to_t(w_trun))): {(helpers.w_to_t(w_trun)*(1 - helpers.w_to_t(w_trun)))}')
-
+			if len(S) == 0:
+				obj = 1/n*(y.T@y) + lam*np.sum(t)
+			else:
+				Xs = X[:,S]
+				bt = pinv(Xs.T@Xs)@(Xs.T@y)
+				n = np.shape(X)[0]
+				obj = 1/n*((y-Xs@bt).T@(y-Xs@bt)) + lam*np.sum(t)
+			'''
+			
 		
 		if max_norm:
 			norm_t = max(np.abs(t - t_prev))
@@ -219,7 +195,21 @@ def CD_combss(X, y,  lam, t_init,
 			else:
 				count_to_term = 0
 		t_prev = t.copy()
-	
+
+		
+		'''
+		(n,p) = X.shape
+		S = np.nonzero(t)[0]
+
+		if len(S) == 0:
+			obj = 1/n*(y.T@y) + lam*np.sum(t)
+		else:
+			Xs = X[:,S]
+			bt = pinv(Xs.T@Xs)@(Xs.T@y)
+			n = np.shape(X)[0]
+			obj = 1/n*((y-Xs@bt).T@(y-Xs@bt)) + lam*np.sum(t)
+		'''
+
 	model = np.where(t > tau)[0]
 
 	if l+1 < cd_maxiter:

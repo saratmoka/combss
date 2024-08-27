@@ -4,14 +4,17 @@ from numpy.linalg import pinv, norm
 from scipy.sparse.linalg import cg
 import time
 import helpers
+import random
+from functools import partial
+
 
 
 '''
-COMBSS Variant 4: Coordinate Descent (Heuristic Forward Selection)
+Best Subset Selection: Heuristic inspired by Splitting Method
 '''
 
 
-def obj_fn(X, y, t, lam):
+def obj_fn(t, X, y, lam):
 	(n,p) = X.shape
 	S = np.nonzero(t)[0]
 
@@ -26,206 +29,263 @@ def obj_fn(X, y, t, lam):
 	return obj
 
 
+def iterate_logic(i, s, s_0, s_1, f_s0, f_s1, level, splits, unique_t, split_created):
+	tup_s0 = tuple(s_0)
+	tup_s1 = tuple(s_1)
+	
+	if (f_s0 < level and tup_s0 not in unique_t):
+		if (f_s1 < level and tup_s1 not in unique_t):
+			bin_seed = int(time.time())
+			np.random.seed(bin_seed)
+			s[i] = np.random.randint(0, 2)
+			unique_t.add(tuple(s))
+			splits.append(s)
+			split_created = True
+		else:
+			s[i] = 0
+			unique_t.add(tuple(s))
+			splits.append(s)
+			split_created = True
+	elif (f_s1 < level and tup_s1 not in unique_t):
+		s[i] = 1
+		unique_t.add(tuple(s))
+		splits.append(s)
+		split_created = True
+	elif (f_s0 < f_s1):
+		s[i] = 0
+	elif (f_s1 < f_s0):
+		s[i] = 1
+
+	fn_val = min(f_s0, f_s1)
+	
+	return s, splits, unique_t, split_created, fn_val
+
+
 """ The Adam optimiser for COMBSS.
 
 	Parameters
 	----------
-	X : array-like of shape (n_samples, n_covariates)
-		The design matrix, where `n_samples` is the number of samples observed
-		and `n_covariates` is the number of covariates measured in each sample.
-
-	y : array-like of shape (n_samples)
-		The response data, where `n_samples` is the number of response elements.
 	
-	xi1 (Adam parameter) : float
-		The exponential decay rate for the first moment estimates in Adam. 
-		Default value = 0.9.
-
-	xi2 (Adam parameter) : float
-		The exponential decay rate for the second-moment estimates.
-		Default value = 0.99.
-
-	alpha (Adam parameter) : float
-		The learning rate for Adam.
-		Default value = 0.1.
-
-	epsilon (Adam parameter) : float
-		A small number used to avoid numerical instability when dividing by 
-		very small numbers within Adam.
-		Default value = 1e-8.
-
-	gd_maxiter (Gradient descent parameter) : int
-		The maximum number of iterations for gradient descent before the algorithm terminates.
-		Default value = 1e5.
-
-	gd_tol (Gradient descent parameter) : float
-		The acceptable tolerance used for the termination condition in gradient descent.
-		Default value = 1e-5.
-
-	max_norm : Boolean
-		Boolean value that signifies if max norm is used for the termination condition in gradient descent.
-		If max_norm is set to be True, the termination condition is evaluated using max norm. Otherwise, 
-		the L2 norm will be used instead.
-		Default value = True
-
-	epoch : int
-		The integer that specifies how many consecutive times the termination condiiton has to be satisfied
-		before the function terminates.
-		Default value = 10.
-
-	tau : float
-		The cutoff value for t that signifies its selection in the model. 
-		If t[i] > tau, the ith covariate is selected in the model. 
-		If t[i] < tau, the ith covariate is not selected in the model.
-		Default value = 0.5.
-
-	eta : float
-		The parameter that dictates the upper limit used for truncating matrices.
-		If the value of t[i] is less than eta, t[i] will be approximated to zero,
-		and the ith column of X will be removed to improve algorithm perfomance.
-		Default value = 0.
-
-	cg_maxiter (Conjugate gradient parameter) : int
-		The maximum number of iterations for the conjugate gradient algortihm used 
-		to approximate the gradient of the function with respect to t and the gradient 
-		of the objective function with respect to beta before the conjugate gradient 
-		algorithm terminates.
-		Default value = 1e5
-
-	cg_tol (Conjugate gradient parameter) : float
-		The acceptable tolerance used for the termination condition in the conjugate gradient 
-		algortihms used to approximate the gradient of the function with respect to t and the 
-		gradient of the objective function with respect to beta.
 
 
 	Returns
 	-------
-	t : array-like of shape (n_covariates)
-		The array of t values at the conclusion of Adam.
-
-	model : array-like of integers
-		The final chosen model, in the form of an array of integers that correspond to the 
-		indicies chosen after performing Adam.
-
-	converge : Boolean 
-		Boolean value that signifies if the gradient descent algorithm converged by it's 
-		termination conditions (converge = True), or if it exhausted its maximum iterations 
-		(converge = False).
-
-	l+1 : int
-		The number of iterations of the gradient descent loop executed by the algorithm. 
-		If the algorithm reaches the maximum number of iterations provided into the function, 
-		l = gd_maxiter.
-"""
-def iterate_combss(X, y, lam, t_init):
-	"""
-	Implementation of the ADAM optimizer for combss. 
-	"""    	
-	# t_init doesnt work when t = t_init
-	t = t_init.copy()
-	t_curr = np.ones_like(t)
-
 	
-	while not np.array_equal(t, t_curr):
-		t_curr = t.copy()
+"""
+def iterate_combss(X, y, lam, epsilon):
+
+	'''
+	Setup
+	'''
+	
+	(n, p) = X.shape
+
+		  	
+	S = p  # Number of trials
+	N = int(p/4) # Candidate pool size
+	bin_prob = 0.5  # Probability of success on each trial
+	unique_s = set()
+	level = np.inf
+	f_lambda = partial(obj_fn, X = X, y = y, lam = lam)
+
+
+	while len(unique_s) < S:
+		# Generate a random binomial vector
+		random_vector = tuple(np.random.binomial(1, bin_prob, p))
 		
-		for i in range(np.shape(t)[0]):
-			t_0 = np.copy(t)
-			t_0[i] = 0
+		# Add it to the set if it's not already present (sets automatically handle uniqueness)
+		unique_s.add(random_vector)
+	print(f'unique_s: {unique_s}')
+	# Convert set of tuples back to a list of NumPy arrays
+	# Step 1: Apply f(x, a, b) to all elements in the array
+	fs_values = np.array([obj_fn(s, X, y, lam) for s in unique_s])
+	print(f'fs_values: {fs_values}')
+	pairs = list(zip(unique_s, fs_values))
 
-			t_1 = np.copy(t)
-			t_1[i] = 1
+	sorted_pairs = sorted(pairs, key=lambda x: x[1])
+	print(f'sorted_pairs: {sorted_pairs}')
 
-			f_t0 = obj_fn(X, y, t_0, lam)
-			f_t1 = obj_fn(X, y, t_1, lam)
+	s_sorted = [pair[0] for pair in sorted_pairs]
+	print(f's_sorted: {s_sorted}')
 
-			if (f_t0 < f_t1):
-				t[i] = 0
-			elif (f_t1 < f_t0):
-				t[i] = 1	
+	s_top = s_sorted[:N]
+	print(f's_top: {s_top}')
 
-	model = np.where(t != 0)[0]
+	# Step 3: Get sorted f(x, a, b) values using sorted indices
+	fs_sorted = [pair[1] for pair in sorted_pairs]
+	print(f'fs_sorted: {fs_sorted}')
 
-	return t, model
+	# Step 4: Find the largest and 4th largest f(x, a, b) values
+	optimal = fs_sorted[0]
+	print(f'optimal: {optimal}')
 
+	level = fs_sorted[N-1]
+	print(f'level: {level}')
 
-""" Dynamically performs Adam for COMBSS over a grid of lambdas to retrieve model of the desired size.
-
-	Parameters
-	----------
-	X : array-like of shape (n_samples, n_covariates)
-		The design matrix, where `n_samples` is the number of samples observed
-		and `n_covariates` is the number of covariates measured in each sample.
-
-	y : array-like of shape (n_samples)
-		The response data, where `n_samples` is the number of response elements.
-	
-	q : int
-		The maximum model size of interest. If q is not provided, it is taken to be n.
-		Default value = None.
-
-	nlam (Adam parameter) : float
-		The number of lambdas explored in the dynamic grid.
-		Default value = None.
-
-	t_init : array-like of integers
-		The initial values of t passed into Adam.
-		Default value = [].
-
-	tau (Adam parameter) : float
-		The cutoff value for t that signifies its selection in the model. 
-		If t[i] > tau, the ith covariate is selected in the model. 
-		If t[i] < tau, the ith covariate is not selected in the model.
-		Default value = 0.5.
-
-	delta_frac : float
- 		The value of n/delta as found in the objective function for COMBSS.
-		Default value = 1.
-
-	fstage_frac : float
-		The fraction of lambda values explored in first stage of dynamic grid.
-		Default value = 0.5.
-
-	eta : float
-		The parameter that dictates the upper limit used for truncating matrices.
-		If the value of t[i] is less than eta, t[i] will be approximated to zero,
-		and the ith column of X will be removed to improve algorithm perfomance.
-		Default value = 0.
-
-	epoch : int
-		The integer that specifies how many consecutive times the termination condiiton has to be satisfied
-		before the function terminates.
-		Default value = 10.
-
-	gd_maxiter (Gradient descent parameter) : int
-		The maximum number of iterations for gradient descent before the algorithm terminates.
-		Default value = 1e5.
-
-	gd_tol (Gradient descent parameter) : float
-		The acceptable tolerance used for the termination condition in gradient descent.
-		Default value = 1e-5.
-
-	cg_maxiter (Conjugate gradient parameter) : int
-		The maximum number of iterations for the conjugate gradient algortihm used 
-		to approximate the gradient of the function with respect to t and the gradient 
-		of the objective function with respect to beta before the conjugate gradient 
-		algorithm terminates.
-		Default value = 1e5
-
-	cg_tol (Conjugate gradient parameter) : float
-		The acceptable tolerance used for the termination condition in the conjugate gradient 
-		algortihms used to approximate the gradient of the function with respect to t and the 
-		gradient of the objective function with respect to beta.
+	t_list = s_sorted[:N]
+	print(f't_list: {t_list}')
 
 
-	Returns
-	-------
-	model_list : array-like of integers, size q
+	t_tuple = [tuple(t_array) for t_array in t_list]
 
-	lam_list : array-like 
+	# Step 2: Create a set from the tuple array
+	unique_t = set(t_tuple)
 
-"""
-def combss_dynamicV4(X, y, 
+	num_splits = N - 1
+	print(f'num_splits: {num_splits}')
+
+	'''
+	First Pass
+	'''
+	for s_tup in s_top:
+		print(f's_tup: {s_tup}')
+
+		s = np.asarray(s_tup)
+		print(f's: {s}')
+		print('a')
+
+		
+		splits = []
+		while len(splits) < num_splits:
+			print('b')
+
+			split_created = False
+			while split_created is False:
+				print('c')
+
+				time_seed = int(time.time())
+
+				np.random.seed(time_seed)  
+				indices = np.arange(len(s))  
+				np.random.shuffle(indices)
+
+			
+				for i in indices:
+					s_0 = np.copy(s)
+					s_0[i] = 0
+
+					s_1 = np.copy(s)
+					s_1[i] = 1
+
+					f_s0 = obj_fn(s_0, X, y, lam)
+					f_s1 = obj_fn(s_1, X, y, lam)
+
+					s, splits, unique_t, split_created, fn_val = iterate_logic(i=1, s=s, s_0 = s_0, s_1 = s_1, f_s0 = f_s0, f_s1 = f_s1, 
+												level = level, splits = splits, unique_t = unique_t, split_created = split_created)
+					
+					if split_created is True:
+						print(f'len(s_top): {len(s_top)}')
+						print(f'len(splits): {len(splits)}')
+						print(f'num_splits: {num_splits}')
+						print(f'len(unique_t): {len(unique_t)}')
+						break
+
+
+	fs_values = np.array([obj_fn(t, X, y, lam) for t in unique_t])
+	print(f'fs_values after splitting: {fs_values}')
+	pairs = list(zip(unique_s, fs_values))
+
+	sorted_pairs = sorted(pairs, key=lambda x: x[1])
+	print(f'sorted_pairs: {sorted_pairs}')
+
+	s_sorted = [s[0] for s in sorted_pairs]
+	print(f's_sorted after splitting: {s_sorted}')
+
+	s_top = s_sorted[:N]
+	print(f's_top: {s_top}')
+
+	# Step 3: Get sorted f(x, a, b) values using sorted indices
+	fs_sorted = [pair[1] for pair in sorted_pairs]
+	print(f'fs_sorted: {fs_sorted}')
+
+	# Step 4: Find the largest and 4th largest f(x, a, b) values
+	optimal = fs_sorted[0]
+	print(f'optimal: {optimal}')
+
+	level_new = fs_sorted[N-1]
+	print(f'level: {level}')
+
+	t_list = s_sorted[:N]
+	print(f't_list: {t_list}')
+
+	t_tuple = [tuple(t_array) for t_array in t_list]
+
+	# Step 2: Create a set from the tuple array
+	unique_t = set(t_tuple)
+
+	'''
+	Iterate with relative error
+	'''
+	while abs(level - level_new)/level_new > epsilon:
+		level = level_new
+		num_splits = int(S/N) - 1
+		# max_iteration = num_splits * 100  # Limit attempts to avoid infinite loop
+
+		for s_tup in s_top:
+			s = np.asarray(s_tup)
+			# iteration = 0
+			
+			splits = []
+			while len(splits) < num_splits:
+
+				split_created = False
+				while split_created is False:
+					time_seed = int(time.time())
+
+					np.random.seed(time_seed)  
+					indices = np.arange(len(s))  
+					np.random.shuffle(indices)
+				
+					for i in indices:
+						s_0 = np.copy(s)
+						s_0[i] = 0
+
+						s_1 = np.copy(s)
+						s_1[i] = 1
+
+						f_s0 = obj_fn(s_0, X, y, lam)
+						f_s1 = obj_fn(s_1, X, y, lam)
+
+						s, splits, unique_t, split_created = iterate_logic(i=1, s=s, s_0 = s_0, s_1 = s_1, f_s0 = f_s0, f_s1 = f_s1, 
+													level = level, splits = splits, unique_t = unique_t, split_created = split_created)
+
+
+		fs_values = np.array([obj_fn(t, X, y, lam) for t in unique_t])
+	print(f'fs_values: {fs_values}')
+	pairs = list(zip(unique_s, fs_values))
+
+	sorted_pairs = sorted(pairs, key=lambda x: x[1])
+	print(f'sorted_pairs: {sorted_pairs}')
+
+	s_sorted = [pair[0] for pair in sorted_pairs]
+	print(f's_sorted: {s_sorted}')
+
+	s_top = s_sorted[:N]
+	print(f's_top: {s_top}')
+
+	# Step 3: Get sorted f(x, a, b) values using sorted indices
+	fs_sorted = [pair[1] for pair in sorted_pairs]
+	print(f'fs_sorted: {fs_sorted}')
+
+	# Step 4: Find the largest and 4th largest f(x, a, b) values
+	optimal = fs_sorted[0]
+	print(f'optimal: {optimal}')
+
+	level_new = fs_sorted[N-1]
+	print(f'level: {level}')
+
+	t_list = s_sorted[:N]
+	print(f't_list: {t_list}')
+
+	t_tuple = [tuple(t_array) for t_array in t_list]
+
+	unique_t = set(t_tuple)
+
+	model = unique_t[0]
+
+	return model
+
+def combss_dynamicV5(X, y, 
 				   q = None,
 				   nlam = None,
 				   t_init= [],         # Initial t vector
@@ -292,7 +352,7 @@ def combss_dynamicV4(X, y,
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	i = 0
 	while not stop:
-		t_final, model = iterate_combss(X, y, lam, t_init=t_init)
+		model = iterate_combss(X, y, lam, epsilon = 1e-5)
 		len_model = model.shape[0]
 
 		lam_list.append(lam)
@@ -322,7 +382,7 @@ def combss_dynamicV4(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				t_final, model = iterate_combss(X, y, lam, t_init=t_init)
+				model = iterate_combss(X, y, lam, epsilon = 1e-5)
 
 				len_model = model.shape[0]
 
@@ -420,7 +480,7 @@ def combss_dynamicV4(X, y,
 	lam_list : array-like
 
 """
-def combssV4(X_train, y_train, X_test, y_test, 
+def combssV5(X_train, y_train, X_test, y_test, 
 			q = None,           # maximum model size
 			nlam = 50,        # number of values in the lambda grid
 			t_init= [],         # Initial t vector
@@ -453,7 +513,7 @@ def combssV4(X_train, y_train, X_test, y_test,
 	
 	#print('Dynamic combss is called')
 	tic = time.process_time()
-	(model_list, lam_list) = combss_dynamicV4(X_train, y_train, q = q, nlam = nlam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter= gd_maxiter, gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
+	(model_list, lam_list) = combss_dynamicV5(X_train, y_train, q = q, nlam = nlam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter= gd_maxiter, gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
 	toc = time.process_time()
 	#print('Dynamic combss is completed')
 	# t_arr = np.array(t_list)

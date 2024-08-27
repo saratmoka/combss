@@ -44,9 +44,11 @@ def BCD_COMBSS(X, y, lam):
 	N = np.where(s == 1)[0]
 	Xs = X[:, N]
 
-	beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
 	beta = np.zeros(p)
-	beta[N] = beta_trun
+	
+	if len(N) != 0:
+		beta_trun = (pinv(Xs.T@Xs))@(Xs.T@y)
+		beta[N] = beta_trun
 	
 	while not np.array_equal(s, s_curr):
 		s_curr = s.copy()
