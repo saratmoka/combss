@@ -37,14 +37,14 @@ nlam = 25
 delta_frac = 1
 n_datasets = 25
 
-beta_list = [1,2]
+beta_list = [1]
 
-snr_high_list = [2,4,6,8]
+snr_high_list = [2,3,4,5,6,7,8]
 for snr in snr_high_list:
 
     for beta_type in beta_list:
         
-        bulk_sim.bulk_simV5(n, p, q, beta_type, K0, snr, corr,
+        bulk_sim.bulk_simV6(n, p, q, beta_type, K0, snr, corr,
                             t_init = t_init,
                             delta_frac=delta_frac,
                             n_datasets=n_datasets, 
