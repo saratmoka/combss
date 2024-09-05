@@ -5,7 +5,10 @@ from sklearn import metrics
 Evaluation metrics for COMBSS
 '''
 
-""" Computes the evaluation metrics for COMBSS.
+
+def performance_metrics(data_X, beta_true, beta_pred):
+    
+    """ Computes the evaluation metrics for COMBSS.
 
 	Parameters
 	----------
@@ -52,11 +55,6 @@ Evaluation metrics for COMBSS
     precision : float
         The ability of the particular model to retrieve the correct subset of predictors, 
         calculated as a rate and expressed as a decimal from 0 to 1.
-	
-"""
-def performance_metrics(data_X, beta_true, beta_pred):
-    """
-    Function for computing performance metrics.
     """
   
     s_true = [beta_true != 0][0]
@@ -82,22 +80,10 @@ def performance_metrics(data_X, beta_true, beta_pred):
         Xbeta_true = data_X@beta_true
         pe = np.square(Xbeta_true - data_X@beta_pred).mean()/np.square(Xbeta_true).mean()        
         precision =  TP/(TP + FP)
-        # print('Pre + Sens:', precision + sensitivity)
         MCC = (TP*TN-FP*FN)/np.sqrt((TP+FP)*(TP+FN)*(TN+FP)*(TN+FN))
     if TP == 0:
         f1_score = 0.0
     else:
         f1_score = TP/(TP + (FP + FN)/2)
-        #f1_score = (2*precision*sensitivity)/(precision + sensitivity)
-    
-    # accuracy = round(accuracy, 4)
-    # sensitivity = round(sensitivity, 4)
-    # specificity = round(specificity, 4)
-    # pe = round(pe, 4)
-    # precision = round(precision, 4)
-    # f1_score = round(f1_score, 4)
-    # MCC = round(MCC, 4)
-    
-    #print(pe, MCC, accuracy, sensitivity, specificity, f1_score, precision)
         
     return [pe, MCC, accuracy, sensitivity, specificity, f1_score, precision]

@@ -4,7 +4,31 @@ from numpy.linalg import pinv, norm
 import helpers
 
 
-""" The Adam optimiser for COMBSS.
+def ADAM_combss(X, y,  lam, t_init,
+		delta_frac = 1,
+		CG = True,
+
+		## Adam parameters
+		xi1 = 0.9, 
+		xi2 = 0.999,            
+		alpha = 0.1, 
+		epsilon = 10e-8,
+	 
+		## Parameters for Termination
+		gd_maxiter = 1e5,
+		gd_tol = 1e-5,
+		max_norm = True, 	# By default, we use max norm as the termination condition.
+		epoch=10,
+		
+		## Truncation parameters
+		tau = 0.5,
+		eta = 0.0, 
+		
+		## Parameters for Conjugate Gradient method
+		cg_maxiter = None,
+		cg_tol = 1e-5):
+	
+	""" The Adam optimiser for COMBSS.
 
 	Parameters
 	----------
@@ -104,30 +128,7 @@ import helpers
 	l+1 : int
 		The number of gradient descent iterations executed by the algorithm. If the algorithm 
 		reaches the maximum number of iterations provided into the function, l = gd_maxiter.
-"""
-def ADAM_combss(X, y,  lam, t_init,
-		delta_frac = 1,
-		CG = True,
-
-		## Adam parameters
-		xi1 = 0.9, 
-		xi2 = 0.999,            
-		alpha = 0.1, 
-		epsilon = 10e-8,
-	 
-		## Parameters for Termination
-		gd_maxiter = 1e5,
-		gd_tol = 1e-5,
-		max_norm = True, 	# By default, we use max norm as the termination condition.
-		epoch=10,
-		
-		## Truncation parameters
-		tau = 0.5,
-		eta = 0.0, 
-		
-		## Parameters for Conjugate Gradient method
-		cg_maxiter = None,
-		cg_tol = 1e-5):
+	"""
 	
 	(n, p) = X.shape
 	
@@ -229,8 +230,33 @@ def ADAM_combss(X, y,  lam, t_init,
 	return  t, model, converge, l+1
 
 
+def combss_dynamicV0(X, y, 
+				   q = None,
+				   nlam = None,
+				   t_init= [],         	# Initial t vector
+				   tau=0.5,             # tau parameter
+				   delta_frac=1,        # delta_frac = n/delta
+				   fstage_frac = 0.5,   # Fraction lambda values explored in first stage of dynamic grid
+				   eta=0.0,             # Truncation parameter
+				   epoch=10,            # Epoch for termination 
+				   gd_maxiter=1000,     # Maximum number of iterations allowed by GD
+				   gd_tol=1e-5,         # Tolerance of GD
+				   cg_maxiter=None,     # Maximum number of iterations allowed by CG
+				   cg_tol=1e-5):        # Tolerance of CG
+	
+	""" Dynamically performs Adam for COMBSS over a grid of lambdas to retrieve model of the desired size.
 
-""" Dynamically performs Adam for COMBSS over a grid of lambdas to retrieve model of the desired size.
+	The dynamic grid of lambda is generated as follows: We are given maximum model size $q$ of interest. 
+	
+	First pass: We start with $\lambda = \lambda_{\max} = \mathbf{y}^\top \mathbf{y}/n$, 
+				where an empty model is selected, and use $\lambda \leftarrow \lambda/2$ 
+				until we find model of size larger than $q$. 
+	
+	Second pass: Then, suppose $\lambda_{grid}$ is (sorted) vector of $\lambda$ valued exploited in 
+				 the first pass, we move from the smallest value to the large value on this grid, 
+				 and run COMBSS at $\lambda = (\lambda_{grid}[k] + \lambda_{grid}[k+1])/2$ if $\lambda_{grid}[k]$ 
+				 and $\lambda_{grid}[k+1]$ produced models with different sizes. 
+				 We repeat this until the size of $\lambda_{grid}$ is larger than a fixed number $nlam$.
 
 	Parameters
 	----------
@@ -299,7 +325,7 @@ def ADAM_combss(X, y,  lam, t_init,
 		gradient of the objective function with respect to beta.
 		Default value: 1e-5
 
-
+		
 	Returns
 	-------
 	model_list : array-like of array-like of integers. 
@@ -307,34 +333,8 @@ def ADAM_combss(X, y,  lam, t_init,
 
 	lam_list : array-like of floats.
 	Captures the sequence of lambda values explored in best subset selection.
+	"""
 
-"""
-def combss_dynamicV0(X, y, 
-				   q = None,
-				   nlam = None,
-				   t_init= [],         	# Initial t vector
-				   tau=0.5,             # tau parameter
-				   delta_frac=1,        # delta_frac = n/delta
-				   fstage_frac = 0.5,   # Fraction lambda values explored in first stage of dynamic grid
-				   eta=0.0,             # Truncation parameter
-				   epoch=10,            # Epoch for termination 
-				   gd_maxiter=1000,     # Maximum number of iterations allowed by GD
-				   gd_tol=1e-5,         # Tolerance of GD
-				   cg_maxiter=None,     # Maximum number of iterations allowed by CG
-				   cg_tol=1e-5):        # Tolerance of CG
-	"""
-	Dynamic grid of lambda is generated as follows: We are given maximum model size $q$ of interest. 
-	
-	First pass: We start with $\lambda = \lambda_{\max} = \mathbf{y}^\top \mathbf{y}/n$, 
-				where an empty model is selected, and use $\lambda \leftarrow \lambda/2$ 
-				until we find model of size larger than $q$. 
-	
-	Second pass: Then, suppose $\lambda_{grid}$ is (sorted) vector of $\lambda$ valued exploited in 
-				 the first pass, we move from the smallest value to the large value on this grid, 
-				 and run COMBSS at $\lambda = (\lambda_{grid}[k] + \lambda_{grid}[k+1])/2$ if $\lambda_{grid}[k]$ 
-				 and $\lambda_{grid}[k+1]$ produced models with different sizes. 
-				 We repeat this until the size of $\lambda_{grid}$ is larger than a fixed number $nlam$.
-	"""
 	(n, p) = X.shape
 	
 	# If q is not given, take q = n.
@@ -409,8 +409,26 @@ def combss_dynamicV0(X, y,
 	return  (model_list, lam_list)
 
 
-""" Dynamically performs Adam for COMBSS over a grid of lambdas to retrieve model of the desired size.
+def combssV0(X_train, y_train, X_test, y_test, 
+			q = None,           # maximum model size
+			nlam = 50,          # number of values in the lambda grid
+			t_init= [],         # Initial t vector
+			tau=0.5,            # tau parameter
+			delta_frac=1,       # delta_frac = n/delta
+			eta=0.001,          # Truncation parameter
+			epoch=10,           # Epoch for termination 
+			gd_maxiter=1000,    # Maximum number of iterations allowed by GD
+			gd_tol=1e-5,        # Tolerance of GD
+			cg_maxiter=None,    # Maximum number of iterations allowed by CG
+			cg_tol=1e-5):
+	
+	""" Dynamically performs Adam for COMBSS with SubsetMapV1 as proposed in the original paper
+		over a grid of lambdas to retrieve a model of the desired size.
 
+		This is the first version of COMBSS available in the paper. In particular, we only look 
+		at the final t obtained by the gradient descent algorithm (ADAM Optimiser) and consider 
+		the model that corresponds to significant elements of t.
+		
 	Parameters
 	----------
 	X_train : array-like of shape (n_samples, n_covariates)
@@ -500,26 +518,6 @@ def combss_dynamicV0(X, y,
 	time : float
 		The time taken to execute COMBSS to perform best subset selection, given the data.
 
-"""
-def combssV0(X_train, y_train, X_test, y_test, 
-			q = None,           # maximum model size
-			nlam = 50,          # number of values in the lambda grid
-			t_init= [],         # Initial t vector
-			tau=0.5,            # tau parameter
-			delta_frac=1,       # delta_frac = n/delta
-			eta=0.001,          # Truncation parameter
-			epoch=10,           # Epoch for termination 
-			gd_maxiter=1000,    # Maximum number of iterations allowed by GD
-			gd_tol=1e-5,        # Tolerance of GD
-			cg_maxiter=None,    # Maximum number of iterations allowed by CG
-			cg_tol=1e-5):
-	""" 
-	COMBSS with SubsetMapV1
-	
-	This is the first version of COMBSS available in the paper. 
-	In particular, we only look at the final t obtained by 
-	the gradient descent algorithm (ADAM Optimizer) and consider the model corresponds 
-	to significant elements of t.
 	"""
 	
 	# Call COMBSS_dynamic with the Adam optimiser

@@ -9,7 +9,9 @@ Helper functions for COMBSS
 '''
 
 
-""" Transform t to w using a sigmoid mapping. Used for interchanging between functions 
+def t_to_w(t):
+
+	""" Transform t to w using a sigmoid mapping. Used for interchanging between functions 
 	that use t for model selection, and w for unconstrained optimisation. Consequently, 
 	this function converts a box-constrained problem to an unconstrained one.
 
@@ -20,18 +22,22 @@ Helper functions for COMBSS
 		the non-selection of the ith covariate in model selection, and values close to 1 support 
 		selection of the ith covariate in model selection.
 
+		
 	Returns
 	-------
 	w : array-like of float of length n_covariates
 		An array of floats, that can be derived from the signoid mapping from t to w. 
 		A mapping of t to w values using the sigmoid mapping allows for continuous optimisation
 		methods to be applied on a now unconstrained variable.
-"""
-def t_to_w(t):
+	"""
+
 	w = np.log(t/(1-t))
 	return w
 
-""" Transform w to t using a sigmoid mapping. Used for interchanging between functions 
+
+def w_to_t(w):
+
+	""" Transform w to t using a sigmoid mapping. Used for interchanging between functions 
 	that use w for unconstrained optimisation, and t for model selection. 
 
 	Parameters
@@ -41,23 +47,25 @@ def t_to_w(t):
 		A mapping of t to w values using the sigmoid mapping allows for continuous optimisation
 		methods to be applied on a now unconstrained variable.
 
+		
 	Returns
 	-------
 	t :  array-like of float of length n_covariates.
 		An array of floats of range [0, 1], where values close to 0 for a particular t[i] support 
 		the non-selection of the ith covariate in model selection, and values close to 1 support 
 		selection of the ith covariate in model selection.
-	
-"""
-def w_to_t(w):
+	"""
 	t = 1/(1+np.exp(-w))
 	return t
 
 
-""" Calculates the gradient of the objective function with respect to parameters t, as well as the 
-	corresponding estimate of beta.
-
-	In other words, returns the gradients of 
+def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
+			  cg_maxiter=None,
+			  cg_tol=1e-5):
+	
+	""" Calculates the gradient of the objective function with respect to parameters t, as well as the 
+	corresponding estimate of beta. Also returns components of the objective function used for recurrent 
+	calls of this function.
 
 	Parameters
 	----------
@@ -140,14 +148,7 @@ def w_to_t(w):
 		function with respect to t when presented with high dimensional data. In particular, 
 		it is a byproduct of the implementation of the Woodbury matrix in the original 
 		COMBSS paper, section 6.1.
-
-	Notes
-	-----
-	
-"""
-def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
-			  cg_maxiter=None,
-			  cg_tol=1e-5):
+	"""
 	 
 	p = t.shape[0]
 	n = y.shape[0]
@@ -181,10 +182,12 @@ def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
 		## constructing Lt_tilde
 		temp = 1 - t*t
 		temp[temp < 1e-8] = 1e-8 
+
 		"""
-		Above we map all the values of temp smaller than 1e-8 to 1e-8 to avoid numerical instability that can 
+		All values of temp smaller than 1e-8 are mapped to 1e-8 to avoid numerical instability that can 
 		arise in the following line.
 		"""
+		
 		S = n*np.divide(1, temp)/delta
 		
 		Xt = np.multiply(X, t)/np.sqrt(n)

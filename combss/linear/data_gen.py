@@ -1,7 +1,10 @@
 import numpy as np
 import sys
 
-""" Generates an array of true beta parameters.
+
+def gen_beta0(p, k0, case):
+
+    """ Generates an array of true beta parameters.
 
 	Parameters
 	----------
@@ -18,6 +21,7 @@ import sys
         - case 2: the first k0 components of beta decrease as beta_i = 0.5^i for i = 0, 1, ...., k0, 
           and all other elements are equal to 0
 	
+          
     Returns
 	-------
     beta0 : array-like of floats.
@@ -25,8 +29,7 @@ import sys
 
     S0: array-like of integers.
         The indices of non-zero coefficients of beta i.e., the true model.
-"""
-def gen_beta0(p, k0, case):
+    """ 
   
     if k0 > p:
         print("Error: k0 is greater than p")
@@ -52,7 +55,10 @@ def gen_beta0(p, k0, case):
         return beta0, S0
 
 
-""" Generates the covariance matrix, cov of data.
+
+def cov_X(p, corr):
+
+    """ Generates the covariance matrix, cov of data.
 
 	Parameters
 	----------
@@ -62,12 +68,13 @@ def gen_beta0(p, k0, case):
     corr : float
        The correlation coefficient such that cov[i, j] = corr^{|i - j|}
 
+       
 	Returns
 	-------
     cov : array-like of floats of shape (n_samples, s_samples).
         The covariance matrix of the betas generated.
-"""
-def cov_X(p, corr):
+    """
+
     cov = np.zeros((p, p))
     for i in range(p):
         for j in range(p):
@@ -76,7 +83,9 @@ def cov_X(p, corr):
     return cov 
 
 
-""" Generates data used for testing COMBSS.
+def gen_data(n, p, mean, cov, noise_var, beta0, centralize=False):
+
+    """ Generates data used for testing COMBSS.
 
 	Parameters
 	----------
@@ -102,6 +111,7 @@ def cov_X(p, corr):
        Data is centralized if centralize = True, and not centralized if centralize = False.
        Default value: False.
 
+       
 	Returns
 	-------
     X : array-like of shape (n, p)
@@ -110,8 +120,7 @@ def cov_X(p, corr):
 
 	y : array-like of shape (n)
 		The response data, where `n` is the number of response elements.
-"""
-def gen_data(n, p, mean, cov, noise_var, beta0, centralize=False):
+    """
 
     X = np.random.multivariate_normal(mean, cov, n)
     
