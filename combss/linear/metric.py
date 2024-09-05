@@ -22,6 +22,8 @@ Evaluation metrics for COMBSS
 
 	Returns
 	-------
+    array-like of floats, [pe, MCC, accuracy, sensitivity, specificity, f1_score, precision], where
+
 	pe : float
         The model's relative prediction error, expressed as a ratio of the root of the model's .. 
 
@@ -39,20 +41,17 @@ Evaluation metrics for COMBSS
         predictors that belong in the best subset, calculated as a rate and expressed 
         as a decimal from 0 to 1.
 
-    specificity : 
+    specificity : float
         The ability of the particular model to correctly determine the rejection of 
         predictors that do not belong in the best subset, calculated as a rate and expressed 
         as a decimal from 0 to 1.
 
-    f1_score :
+    f1_score : float
         The F1-Score of the particular model.
 
-    precision :
+    precision : float
         The ability of the particular model to retrieve the correct subset of predictors, 
         calculated as a rate and expressed as a decimal from 0 to 1.
-
-	Notes
-	-----
 	
 """
 def performance_metrics(data_X, beta_true, beta_pred):

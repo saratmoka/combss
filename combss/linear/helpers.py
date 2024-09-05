@@ -10,115 +10,138 @@ from sklearn.linear_model import Ridge
 Helper functions for COMBSS
 '''
 
+
 """ Transform t to w using a sigmoid mapping. Used for interchanging between functions 
-	that use t for model selection, and w for unconstrainted optimisation.
+	that use t for model selection, and w for unconstrained optimisation. Consequently, 
+	this function converts a box-constrained problem to an unconstrained one.
 
 	Parameters
 	----------
-	t :  integer
+	t :  array-like of float of length n_covariates.
+		An array of floats of range [0, 1], where values close to 0 for a particular t[i] support 
+		the non-selection of the ith covariate in model selection, and values close to 1 support 
+		selection of the ith covariate in model selection.
 
 	Returns
 	-------
-	w : integer
-
-	Notes
-	-----
-	
+	w : array-like of float of length n_covariates
+		An array of floats, that can be derived from the signoid mapping from t to w. 
+		A mapping of t to w values using the sigmoid mapping allows for continuous optimisation
+		methods to be applied on a now unconstrained variable.
 """
 def t_to_w(t):
-	"""
-	Function to convert t to w, and it is used in converting box-constraint problem to an unconstrained one.
-	"""
 	w = np.log(t/(1-t))
 	return w
 
-
-""" Transform w to t using a logit mapping. Used for interchanging between functions 
-	that use w for unconstrainted optimisation, and t for model selection.
+""" Transform w to t using a sigmoid mapping. Used for interchanging between functions 
+	that use w for unconstrained optimisation, and t for model selection. 
 
 	Parameters
 	----------
-	w : integer
+	w : array-like of float of length n_covariates
+		An array of floats, that can be derived from the signoid mapping from t to w. 
+		A mapping of t to w values using the sigmoid mapping allows for continuous optimisation
+		methods to be applied on a now unconstrained variable.
 
 	Returns
 	-------
-	t : integer
+	t :  array-like of float of length n_covariates.
+		An array of floats of range [0, 1], where values close to 0 for a particular t[i] support 
+		the non-selection of the ith covariate in model selection, and values close to 1 support 
+		selection of the ith covariate in model selection.
+	
 """
-
 def w_to_t(w):
 	t = 1/(1+np.exp(-w))
 	return t
 
 
-""" Transform w to t using a logit mapping. Used for interchanging between functions 
-	that use w for unconstrainted optimisation, and t for model selection.
-
-	Parameters
-	----------
-	w : integer
-
-	Returns
-	-------
-	t : integer
-"""
-def gen_eta_max(A):
-	b_k = np.random.rand(A.shape[1])
-
-	for _ in range(1000):
-		b_ki = A@b_k
-
-		b_ki_norm = np.linalg.norm(b_ki)
-		b_k = b_ki / b_ki_norm
-
-	eta_max = b_k@A@b_k
-	return eta_max
-
-
-
-""" Calculates the gradients of the objective function with respect to parameters t and beta.
+""" Calculates the gradient of the objective function with respect to parameters t, as well as the 
+	corresponding estimate of beta.
 
 	In other words, returns the gradients of 
 
 	Parameters
 	----------
-	t :  
+	t : array-like of floats.
+		The t vector used for calculations.
 
-	X :  
+	X : array-like of shape (n_samples, n_covariates)
+		The design matrix, where `n_samples` is the number of samples observed
+		and `n_covariates` is the number of covariates measured in each sample.
 
-	y :  
+	y : array-like of shape (n_samples)
+		The response data, where `n_samples` is the number of response elements.
 
-	XX : 
+	XX : array-like of shape (n_covariates, n_covariates).
+		The matrix XX is defined as (X.T@X)/n, as featured in the original COMBSS paper.
 
-	Xy :
-
-	Z :
-
-	lam :
-
-	delta :
-
-	beta :
-
-	c : 
+	Xy : array-like of shape (n_covariates, 1).
+		The matrix Xy is defined as (X.T@y)/n, as featured in the original COMBSS paper.
 	
-	g1 :
+	Z : array-like of shape (n_covariates, n_covariates).
+		The matrix Z is defined as a copy of matrix XX, and is used to construct Lt
+		from the original COMBSS paper.
 
-	g2 :
+	lam : float
+		The penalty parameter used within the objective function. Referred to as
+		'lambda' in the original COMBSS paper.
 
-	cg_maxiter :
+	delta : float
+		The tuning parameter delta as referenced in the original COMBSS paper. 
 
-	cg_tol :
+	beta : array-like of floats of shape (n_covariates, 1)
+		The current values of beta, calculated from the X matrix, y vector and current 
+		values of vector t.
+
+	c : array-like of floats of shape (n_covariates - n_truncated, 1)
+		The vector c as referenced in the original COMBSS paper, where 'n_covariates' is 
+		the number of covariates, and 'n_truncated' is the number of columns of X ignored 
+		as a result of the truncation process.
+	
+	g1 : array-like of floats of shape (n_samples, 1)
+		The vector g1 is used in constructing the estimate of beta when presented with high 
+		dimensional data. In particular, it is a byproduct of the implementation of the 
+		Woodbury matrix in the original COMBSS paper, section 6.1.
+
+	g2 : array-like of floats of shape (n_samples, 1)
+		The vector g1 is used in constructing the estimate of the gradient of the objective 
+		function with respect to t when presented with high dimensional data. In particular, 
+		it is a byproduct of the implementation of the Woodbury matrix in the original 
+		COMBSS paper, section 6.1.
+
+	cg_maxiter (Conjugate gradient parameter) : int
+		The maximum number of iterations for the conjugate gradient algortihm used 
+		to approximate the gradient of the function with respect to t and the gradient 
+		of the objective function with respect to beta before the conjugate gradient 
+		algorithm terminates.
+		Default value = None.
+
+	cg_tol (Conjugate gradient parameter) : float
+		The acceptable tolerance used for the termination condition in the conjugate gradient 
+		algortihms used to approximate the gradient of the function with respect to t and the 
+		gradient of the objective function with respect to beta.
+		Default value = 1e5.
 
 	
 	Returns
 	-------
-	grad : 
+	grad : array-like of floats (n_covariates, 1).
+		The derivative of the objective function with respect to t.
 
-	beta : 
+	beta : array-like of floats of shape (n_covariates, 1).
+		The associated value of beta with respect to the existing ts.
 
-	g1 : 
+	g1 : array-like of floats of shape (n_samples, 1)
+		The vector g1 is used in constructing the estimate of beta when presented with high 
+		dimensional data. In particular, it is a byproduct of the implementation of the 
+		Woodbury matrix in the original COMBSS paper, section 6.1.
 
-	g2 :
+	g2 : array-like of floats of shape (n_samples, 1)
+		The vector g1 is used in constructing the estimate of the gradient of the objective 
+		function with respect to t when presented with high dimensional data. In particular, 
+		it is a byproduct of the implementation of the Woodbury matrix in the original 
+		COMBSS paper, section 6.1.
 
 	Notes
 	-----
@@ -165,7 +188,6 @@ def f_grad_cg(t, X, y, XX, Xy, Z, lam, delta, beta,  c,  g1, g2,
 		arise in the following line.
 		"""
 		S = n*np.divide(1, temp)/delta
-		
 		
 		Xt = np.multiply(X, t)/np.sqrt(n)
 		XtS = np.multiply(Xt, S)

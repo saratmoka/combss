@@ -6,7 +6,7 @@ import time
 import helpers
 import random
 from functools import partial
-
+import math
 
 
 '''
@@ -29,36 +29,29 @@ def obj_fn(t, X, y, lam):
 	return obj
 
 
-def iterate_logic(i, s, s_0, s_1, f_s0, f_s1, level, splits, unique_t, split_created):
-	tup_s0 = tuple(s_0)
-	tup_s1 = tuple(s_1)
+def iterate_logic(i, s, f_s0, f_s1, level, splits, split_created):
 	
-	if (f_s0 < level and tup_s0 not in unique_t):
-		if (f_s1 < level and tup_s1 not in unique_t):
+	if (f_s0 < level):
+		if (f_s1 < level):
 			bin_seed = int(time.time())
 			np.random.seed(bin_seed)
 			s[i] = np.random.randint(0, 2)
-			unique_t.add(tuple(s))
 			splits.append(s)
 			split_created = True
 		else:
 			s[i] = 0
-			unique_t.add(tuple(s))
 			splits.append(s)
 			split_created = True
-	elif (f_s1 < level and tup_s1 not in unique_t):
+	elif (f_s1 < level):
 		s[i] = 1
-		unique_t.add(tuple(s))
 		splits.append(s)
 		split_created = True
 	elif (f_s0 < f_s1):
 		s[i] = 0
 	elif (f_s1 < f_s0):
 		s[i] = 1
-
-	fn_val = min(f_s0, f_s1)
 	
-	return s, splits, unique_t, split_created, fn_val
+	return s, splits, split_created
 
 
 """ The Adam optimiser for COMBSS.
@@ -74,166 +67,79 @@ def iterate_logic(i, s, s_0, s_1, f_s0, f_s1, level, splits, unique_t, split_cre
 """
 def iterate_combss(X, y, lam, epsilon):
 
-	'''
-	Setup
-	'''
 	
 	(n, p) = X.shape
+ 	
+	# Number of Candidates
+	if p < 1000:
+		C = p*20
+	else:	  	
+		C = int(p/8) 
 
-		  	
-	S = p  # Number of trials
-	N = int(p/4) # Candidate pool size
+	N = int(C/5) # Number of Candidates promoted to next level
+	# print(f'C = {C}')
+	# print(f'N = {N}')
 	bin_prob = 0.5  # Probability of success on each trial
-	unique_s = set()
-	level = np.inf
-	f_lambda = partial(obj_fn, X = X, y = y, lam = lam)
+	candidates = []
+	# f_lambda = partial(obj_fn, X = X, y = y, lam = lam)
 
 
-	while len(unique_s) < S:
+	while len(candidates) < C:
 		# Generate a random binomial vector
-		random_vector = tuple(np.random.binomial(1, bin_prob, p))
-		
-		# Add it to the set if it's not already present (sets automatically handle uniqueness)
-		unique_s.add(random_vector)
-	print(f'unique_s: {unique_s}')
-	# Convert set of tuples back to a list of NumPy arrays
-	# Step 1: Apply f(x, a, b) to all elements in the array
-	fs_values = np.array([obj_fn(s, X, y, lam) for s in unique_s])
-	print(f'fs_values: {fs_values}')
-	pairs = list(zip(unique_s, fs_values))
+		random_model = np.random.binomial(1, bin_prob, p)
+		candidates.append(random_model)
+	
+	# print(f'candidates: {candidates}')
+
+	fs_values = np.array([obj_fn(s, X, y, lam) for s in candidates])
+	pairs = list(zip(candidates, fs_values))
 
 	sorted_pairs = sorted(pairs, key=lambda x: x[1])
-	print(f'sorted_pairs: {sorted_pairs}')
+	# print(f'sorted_pairs: {sorted_pairs}')
 
-	s_sorted = [pair[0] for pair in sorted_pairs]
-	print(f's_sorted: {s_sorted}')
+	sorted_candidates = [pair[0] for pair in sorted_pairs]
+	# print(f'sorted_candidates: {sorted_candidates}')
 
-	s_top = s_sorted[:N]
-	print(f's_top: {s_top}')
+	top_candidates = sorted_candidates[:N].copy()
+	# print(f'top_candidates: {top_candidates}')
 
 	# Step 3: Get sorted f(x, a, b) values using sorted indices
 	fs_sorted = [pair[1] for pair in sorted_pairs]
-	print(f'fs_sorted: {fs_sorted}')
+	# print(f'fs_sorted: {fs_sorted}')
 
 	# Step 4: Find the largest and 4th largest f(x, a, b) values
 	optimal = fs_sorted[0]
-	print(f'optimal: {optimal}')
+	print(f'initial optimal: {optimal}')
 
 	level = fs_sorted[N-1]
-	print(f'level: {level}')
+	# print(f'initial level: {level}')
 
-	t_list = s_sorted[:N]
-	print(f't_list: {t_list}')
+	promoted_list = sorted_candidates[:N].copy()
 
+	level_old = np.inf
 
-	t_tuple = [tuple(t_array) for t_array in t_list]
+	while abs(level_old - level)/level > epsilon:
+		level_old = level
+		candidates = top_candidates
+		N = len(top_candidates)
 
-	# Step 2: Create a set from the tuple array
-	unique_t = set(t_tuple)
+		for j in range(N):
+			s = candidates[j]
 
-	num_splits = N - 1
-	print(f'num_splits: {num_splits}')
+			if j < N-1:
+				n = math.ceil((C-N)/N)
+			else:
+				n = C - N - (N-1)*math.ceil((C-N)/N)
 
-	'''
-	First Pass
-	'''
-	for s_tup in s_top:
-		print(f's_tup: {s_tup}')
-
-		s = np.asarray(s_tup)
-		print(f's: {s}')
-		print('a')
-
-		
-		splits = []
-		while len(splits) < num_splits:
-			print('b')
-
-			split_created = False
-			while split_created is False:
-				print('c')
-
-				time_seed = int(time.time())
-
-				np.random.seed(time_seed)  
-				indices = np.arange(len(s))  
-				np.random.shuffle(indices)
-
-			
-				for i in indices:
-					s_0 = np.copy(s)
-					s_0[i] = 0
-
-					s_1 = np.copy(s)
-					s_1[i] = 1
-
-					f_s0 = obj_fn(s_0, X, y, lam)
-					f_s1 = obj_fn(s_1, X, y, lam)
-
-					s, splits, unique_t, split_created, fn_val = iterate_logic(i=1, s=s, s_0 = s_0, s_1 = s_1, f_s0 = f_s0, f_s1 = f_s1, 
-												level = level, splits = splits, unique_t = unique_t, split_created = split_created)
-					
-					if split_created is True:
-						print(f'len(s_top): {len(s_top)}')
-						print(f'len(splits): {len(splits)}')
-						print(f'num_splits: {num_splits}')
-						print(f'len(unique_t): {len(unique_t)}')
-						break
-
-
-	fs_values = np.array([obj_fn(t, X, y, lam) for t in unique_t])
-	print(f'fs_values after splitting: {fs_values}')
-	pairs = list(zip(unique_s, fs_values))
-
-	sorted_pairs = sorted(pairs, key=lambda x: x[1])
-	print(f'sorted_pairs: {sorted_pairs}')
-
-	s_sorted = [s[0] for s in sorted_pairs]
-	print(f's_sorted after splitting: {s_sorted}')
-
-	s_top = s_sorted[:N]
-	print(f's_top: {s_top}')
-
-	# Step 3: Get sorted f(x, a, b) values using sorted indices
-	fs_sorted = [pair[1] for pair in sorted_pairs]
-	print(f'fs_sorted: {fs_sorted}')
-
-	# Step 4: Find the largest and 4th largest f(x, a, b) values
-	optimal = fs_sorted[0]
-	print(f'optimal: {optimal}')
-
-	level_new = fs_sorted[N-1]
-	print(f'level: {level}')
-
-	t_list = s_sorted[:N]
-	print(f't_list: {t_list}')
-
-	t_tuple = [tuple(t_array) for t_array in t_list]
-
-	# Step 2: Create a set from the tuple array
-	unique_t = set(t_tuple)
-
-	'''
-	Iterate with relative error
-	'''
-	while abs(level - level_new)/level_new > epsilon:
-		level = level_new
-		num_splits = int(S/N) - 1
-		# max_iteration = num_splits * 100  # Limit attempts to avoid infinite loop
-
-		for s_tup in s_top:
-			s = np.asarray(s_tup)
-			# iteration = 0
-			
 			splits = []
-			while len(splits) < num_splits:
-
+			while len(splits) < n:
 				split_created = False
 				while split_created is False:
-					time_seed = int(time.time())
 
-					np.random.seed(time_seed)  
-					indices = np.arange(len(s))  
+					time_seed = random.randint(1,2^30)
+
+					np.random.seed(time_seed)
+					indices = np.arange(p)  
 					np.random.shuffle(indices)
 				
 					for i in indices:
@@ -246,44 +152,57 @@ def iterate_combss(X, y, lam, epsilon):
 						f_s0 = obj_fn(s_0, X, y, lam)
 						f_s1 = obj_fn(s_1, X, y, lam)
 
-						s, splits, unique_t, split_created = iterate_logic(i=1, s=s, s_0 = s_0, s_1 = s_1, f_s0 = f_s0, f_s1 = f_s1, 
-													level = level, splits = splits, unique_t = unique_t, split_created = split_created)
+						s, splits, split_created, = iterate_logic(i=1, s=s, f_s0 = f_s0, f_s1 = f_s1, 
+													level = level, splits = splits, split_created = split_created)
+						
+						if split_created is True:
+							if s in promoted_list:
+								split_created = False
+								continue
+							else:
+								promoted_list.append(s)
+								break
+			
+			# promoted_list.extend(splits)
+				
 
+		fs_values = np.array([obj_fn(s, X, y, lam) for s in promoted_list])
+		# print(f'ft_values after splitting: {fs_values}')
+		pairs = list(zip(promoted_list, fs_values))
 
-		fs_values = np.array([obj_fn(t, X, y, lam) for t in unique_t])
-	print(f'fs_values: {fs_values}')
-	pairs = list(zip(unique_s, fs_values))
+		sorted_pairs = sorted(pairs, key=lambda x: x[1])
+		# print(f'sorted_pairs: {sorted_pairs}')
 
-	sorted_pairs = sorted(pairs, key=lambda x: x[1])
-	print(f'sorted_pairs: {sorted_pairs}')
+		sorted_candidates = [s[0] for s in sorted_pairs]
+		# print(f'sorted_candidates after splitting: {sorted_candidates}')
 
-	s_sorted = [pair[0] for pair in sorted_pairs]
-	print(f's_sorted: {s_sorted}')
+		top_candidates = sorted_candidates[:N].copy()
+		# print(f'top_candidates: {top_candidates}')
 
-	s_top = s_sorted[:N]
-	print(f's_top: {s_top}')
+		fs_sorted = [pair[1] for pair in sorted_pairs]
+		# print(f'fs_sorted: {fs_sorted}')
 
-	# Step 3: Get sorted f(x, a, b) values using sorted indices
-	fs_sorted = [pair[1] for pair in sorted_pairs]
-	print(f'fs_sorted: {fs_sorted}')
+		top_fs = fs_sorted[:N]
+		# print(f'top_fs: {top_fs}')
 
-	# Step 4: Find the largest and 4th largest f(x, a, b) values
-	optimal = fs_sorted[0]
-	print(f'optimal: {optimal}')
+		optimal = fs_sorted[0]
+		print(f'optimal: {optimal}')
 
-	level_new = fs_sorted[N-1]
-	print(f'level: {level}')
+		level = fs_sorted[N-1]
+		# print(f'level: {level}')
 
-	t_list = s_sorted[:N]
-	print(f't_list: {t_list}')
+		promoted_list = sorted_candidates[:N].copy()
+		# print(f'len(promoted_list) = {len(promoted_list)}, should be 200')
 
-	t_tuple = [tuple(t_array) for t_array in t_list]
+		# print(f'promoted_list: {promoted_list}')
+		# print(f'number promoted: {len(promoted_list)}')
 
-	unique_t = set(t_tuple)
-
-	model = unique_t[0]
+	final_indices = top_candidates[0]
+	model = np.where(final_indices != 0)[0]
+	# print(f'model: {model}')
 
 	return model
+
 
 def combss_dynamicV5(X, y, 
 				   q = None,
@@ -352,7 +271,7 @@ def combss_dynamicV5(X, y,
 	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
 	i = 0
 	while not stop:
-		model = iterate_combss(X, y, lam, epsilon = 1e-5)
+		model = iterate_combss(X, y, lam, epsilon = 1e-3)
 		len_model = model.shape[0]
 
 		lam_list.append(lam)
@@ -382,8 +301,7 @@ def combss_dynamicV5(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				model = iterate_combss(X, y, lam, epsilon = 1e-5)
-
+				model = iterate_combss(X, y, lam, epsilon = 1e-3)
 				len_model = model.shape[0]
 
 				lam_list.append(lam)

@@ -128,8 +128,15 @@ def iterate_combss(X, y, lam, t_init):
 	
 	while not np.array_equal(t, t_curr):
 		t_curr = t.copy()
+
+		p = np.shape(t)[0]
 		
-		for i in range(np.shape(t)[0]):
+		time_seed = int(time.time())
+		np.random.seed(time_seed)  
+		indices = np.arange(p)  
+		np.random.shuffle(indices)
+
+		for i in indices:
 			t_0 = np.copy(t)
 			t_0[i] = 0
 

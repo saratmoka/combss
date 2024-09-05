@@ -35,7 +35,7 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 	
 	nmetrics = len(metrics)
 
-	file_path = "./var3_test/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
+	file_path = "./splitting_test/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
 
 	with open(file_path, 'w', newline='') as f:
 		writer = csv.writer(f)
@@ -88,7 +88,6 @@ def bulk_simV0(n, p, q, beta_type, K0, snr, corr,
 		result_row[nmetrics-1] = result1[3]
 		
 		beta_pred = result1[2]
-		print(f'beta_pred = {beta_pred}')
 
 		beta_true = np.zeros(p)
 		if beta_type == 1:
@@ -456,7 +455,7 @@ def bulk_simV4(n, p, q, beta_type, K0, snr, corr,
 	
 	nmetrics = len(metrics)
 
-	file_path = "./coordinateFriday/COMBSSV4-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
+	file_path = "./var3_randomised/COMBSSV4-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
 
 	with open(file_path, 'w', newline='') as f:
 		writer = csv.writer(f)
@@ -540,7 +539,7 @@ def bulk_simV5(n, p, q, beta_type, K0, snr, corr,
 	
 	nmetrics = len(metrics)
 
-	file_path = "./splitting_test/COMBSSV5-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
+	file_path = "./split_escape/COMBSSV5-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-1-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, snr,  n_datasets, nlam, eta)
 
 	with open(file_path, 'w', newline='') as f:
 		writer = csv.writer(f)
