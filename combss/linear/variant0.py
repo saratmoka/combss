@@ -500,8 +500,8 @@ def combss_dynamicV0(X, y,
 
 	time : float
 		The time taken to execute COMBSS to perform best subset selection, given the data.
+	"""
 
-"""
 def combssV0(X_train, y_train, X_test, y_test, 
 			q = None,           # maximum model size
 			nlam = 50,          # number of values in the lambda grid
@@ -568,6 +568,6 @@ def combssV0(X_train, y_train, X_test, y_test,
 	mse_opt = mse_list[ind_opt] 
 	beta_opt = beta_list[ind_opt]
 	
-	time = toc - tic
+	time_taken = toc - tic
 
-	return model_opt, mse_opt, beta_opt, lam_opt, time
+	return model_opt, mse_opt, beta_opt, lam_opt, time_taken
