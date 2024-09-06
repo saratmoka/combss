@@ -565,6 +565,6 @@ def combssV0(X_train, y_train, X_test, y_test,
 	mse_opt = mse_list[ind_opt] 
 	beta_opt = beta_list[ind_opt]
 	
-	time = toc - tic
+	time_taken = toc - tic
 
-	return model_opt, mse_opt, beta_opt, lam_opt, time
+	return model_opt, mse_opt, beta_opt, lam_opt, time_taken
