@@ -13,6 +13,26 @@ import math
 Best Subset Selection: Heuristic inspired by Splitting Method, Subset Permutations
 '''
 
+def gen_permutation(s):
+
+	zeros_ind = np.where(s == 0)
+	ones_ind = np.where(s != 0)
+	
+	random.seed(time.time())
+	s_0 = np.copy(s)
+	s_in = random.choice(zeros_ind)
+	s_out = random.choice(ones_ind)
+	s_0[s_in] = 1
+	s_0[s_out] = 0
+
+	random.seed(time.time())
+	s_1 = np.copy(s)
+	s_in = random.choice(zeros_ind)
+	s_out = random.choice(ones_ind)
+	s_1[s_in] = 1
+	s_1[s_out] = 0
+
+	return s_0, s_1
 
 def obj_fn(t, X, y, lam):
 	(n,p) = X.shape
@@ -37,13 +57,13 @@ def iterate_logic(s_0, s_1, f_s0, f_s1, level, split_created):
 		if (f_s1 < level):
 			bin_seed = int(time.time())
 			np.random.seed(bin_seed)
-			s = random.choice([s_0, s_1])
+			s = random.choice([s_0, s_1]).copy()
 			split_created = True
 		else:
-			s = s_0
+			s = s_0.copy()
 			split_created = True
 	elif (f_s1 < level):
-		s = s_1
+		s = s_1.copy()
 		split_created = True
 	
 	return s, split_created
@@ -93,13 +113,17 @@ def iterate_combss(X, y, q, lam, epsilon):
 	promoted_list = sorted_candidates[:N].copy()
 
 	level_old = np.inf
-
-	while abs(level_old - level)/level > epsilon:
+	maxiter = 10000
+	i = 0
+	exhausted = False
+	while abs(level_old - level)/level > epsilon and i < maxiter:
 		level_old = level
 		candidates = top_candidates
 		N = len(top_candidates)
-
 		for j in range(N):
+			if i > maxiter or exhausted:
+				exhausted = True
+				break
 			s = candidates[j]
 
 			if j < N-1:
@@ -110,30 +134,21 @@ def iterate_combss(X, y, q, lam, epsilon):
 			splits = []
 			while len(splits) < n: 
 				split_created = False
+				if i > maxiter or exhausted:
+					exhausted = True
+					break
 
 				while split_created is False:
-					time_seed = random.randint(1,2^30)
+					if i > maxiter or exhausted:
+						exhausted = True
+						break
+					time_seed = random.randint(1,2^20)
 
 					np.random.seed(time_seed)
 					indices = np.arange(p)  
 					np.random.shuffle(indices)
-				
-					zeros_ind = np.where(s == 0)
-					ones_ind = np.where(s != 0)
 
-					random.seed(time.time())
-					s_0 = np.copy(s)
-					s_in = random.choice(zeros_ind)
-					s_out = random.choice(ones_ind)
-					s_0[s_in] = 1
-					s_0[s_out] = 0
-
-					random.seed(time.time())
-					s_1 = np.copy(s)
-					s_in = random.choice(zeros_ind)
-					s_out = random.choice(ones_ind)
-					s_1[s_in] = 1
-					s_1[s_out] = 0
+					s_0, s_1 = gen_permutation(s)
 
 					f_s0 = obj_fn(s_0, X, y, lam)
 					f_s1 = obj_fn(s_1, X, y, lam)
@@ -141,25 +156,39 @@ def iterate_combss(X, y, q, lam, epsilon):
 					s, split_created, = iterate_logic(s_0 = s_0, s_1 = s_1, f_s0 = f_s0, f_s1 = f_s1, 
 												level = level, split_created = split_created)
 					
-					print(f'f_s0 = {f_s0}')
-					print(f'f_s1 = {f_s1}')
+					# print(f'f_s0 = {f_s0}')
+					# print(f'f_s1 = {f_s1}')
+					# print(f'split_created = {split_created}')
+
+					print(f'len(promoted_list) = {len(promoted_list)}')
+					print(f'len(splits) = {len(splits)}')
 
 					if split_created is True:
-						duplicate = any(np.array_equal(s, arr) for arr in promoted_list)
+						# BIG ERROR, never letting me get through this duplicate stage.
+						# duplicate = any(tuple(s.flat) == tuple(arr.flat) for arr in promoted_list)
+						duplicate = False
 						print(f'duplicate: {duplicate}')
+						# print(f'step: b')
 						if duplicate:
 							split_created = False
+							# print(f'step: c')
 							continue
 						else:
 							splits.append(s)
 							promoted_list.append(s)
+							# print(f'step: d')
 							break	
-					
 					if len(splits) >= n:
+						# print(f'step: e')
 						break
-					print(f'len(promoted_list) = {len(promoted_list)}')
-					print(f'len(splits) = {len(splits)}')
-
+					# print(f'len(promoted_list) = {len(promoted_list)}')
+					# print(f'len(splits) = {len(splits)}')
+					i += 1
+					if i > maxiter:
+						exhausted = True
+						break
+					print(i)
+		# print(f'step: f')
 		fs_values = np.array([obj_fn(s, X, y, lam) for s in promoted_list])
 		pairs = list(zip(promoted_list, fs_values))
 
