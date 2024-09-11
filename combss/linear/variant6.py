@@ -7,6 +7,8 @@ import helpers
 import random
 from functools import partial
 import math
+import secrets
+from math import comb
 
 
 '''
@@ -15,37 +17,44 @@ Best Subset Selection: Heuristic inspired by Splitting Method, Subset Permutatio
 
 def gen_permutation(s):
 
-	zeros_ind = np.where(s == 0)
-	ones_ind = np.where(s != 0)
+	zeros_ind = np.where(s == 0)[0]
+	ones_ind = np.where(s != 0)[0]
 	
-	random.seed(time.time())
-	s_0 = np.copy(s)
+	s_0 = s.copy()
+	random.seed(secrets.randbits(64))
 	s_in = random.choice(zeros_ind)
 	s_out = random.choice(ones_ind)
 	s_0[s_in] = 1
 	s_0[s_out] = 0
 
-	random.seed(time.time())
-	s_1 = np.copy(s)
+	s_1 = s.copy()
+	random.seed(secrets.randbits(64))
 	s_in = random.choice(zeros_ind)
 	s_out = random.choice(ones_ind)
 	s_1[s_in] = 1
 	s_1[s_out] = 0
+	
+	while (s_0==s_1).all():
+		s_1 = s.copy()
+		random.seed(secrets.randbits(64))
+		s_in = random.choice(zeros_ind)
+		s_out = random.choice(ones_ind)
+		s_1[s_in] = 1
+		s_1[s_out] = 0
 
 	return s_0, s_1
 
-def obj_fn(t, X, y, lam):
+def obj_fn(t, X, y):
 	(n,p) = X.shape
 	S = np.nonzero(t)[0]
 
 	if len(S) == 0:
-		obj = 1/n*(y.T@y) + lam*np.sum(t)
+		obj = 1/n*(y.T@y)
 	else:
 		Xs = X[:,S]
 		bt = pinv(Xs.T@Xs)@(Xs.T@y)
 		n = np.shape(X)[0]
-		obj = 1/n*((y-Xs@bt).T@(y-Xs@bt)) + lam*np.sum(t)
-
+		obj = 1/n*((y-Xs@bt).T@(y-Xs@bt))
 	return obj
 
 
@@ -69,39 +78,46 @@ def iterate_logic(s_0, s_1, f_s0, f_s1, level, split_created):
 	return s, split_created
 
 
-def iterate_combss(X, y, q, lam, epsilon):
+def iterate_combss(X, y, u, q, epsilon):
 
 	(n, p) = X.shape
+
+	if u == 0:
+		return np.array([], dtype=np.int64)
+	elif u == p:
+		return np.arange(0, q, dtype=np.int64)
  	
-	# Number of Candidates
 	if p < 1000:
 		C = p*20
 	else:	  	
 		C = int(p/8) 
+	
+	C = min(C, comb(p,u))
 
 	N = int(C/5) # Number of Candidates promoted to next level
+	print(f'For a model of size {u}, C = {C} candidates are explored, and N = {N} are promoted to the next level.')
+
 	candidates = []
+	seen = set()
 
 	while len(candidates) < C:
 		# Generate a random binomial vector
 		random_model = np.zeros(p, dtype=int)
 	
 		# Randomly choose q indices to set to 1
-		random_ones = np.random.choice(p, q, replace=False)
+		random_ones = np.random.choice(p, u, replace=False)
 		random_model[random_ones] = 1
 		candidates.append(random_model)
 	
-	fs_values = np.array([obj_fn(s, X, y, lam) for s in candidates])
+	fs_values = np.array([obj_fn(s, X, y) for s in candidates])
 	pairs = list(zip(candidates, fs_values))
 
 	sorted_pairs = sorted(pairs, key=lambda x: x[1])
 
-	sorted_candidates = [pair[0] for pair in sorted_pairs]
-
-	top_candidates = sorted_candidates[:N].copy()
-
-	# Get sorted f() values using sorted indices
 	fs_sorted = [pair[1] for pair in sorted_pairs]
+
+	sorted_candidates = [pair[0] for pair in sorted_pairs]
+	top_candidates = sorted_candidates[:N].copy()
 
 	# Find the largest and 4th largest f() values
 	optimal = fs_sorted[0]
@@ -113,7 +129,7 @@ def iterate_combss(X, y, q, lam, epsilon):
 	promoted_list = sorted_candidates[:N].copy()
 
 	level_old = np.inf
-	maxiter = 10000
+	maxiter = 100000
 	i = 0
 	exhausted = False
 	while abs(level_old - level)/level > epsilon and i < maxiter:
@@ -121,6 +137,7 @@ def iterate_combss(X, y, q, lam, epsilon):
 		candidates = top_candidates
 		N = len(top_candidates)
 		for j in range(N):
+
 			if i > maxiter or exhausted:
 				exhausted = True
 				break
@@ -131,14 +148,21 @@ def iterate_combss(X, y, q, lam, epsilon):
 			else:
 				n = C - N - (N-1)*math.ceil((C-N)/N)
 
+			# print(f'For {u}, C = {C} and N = {N}, n should be 4 and is {n}.')
+
+
 			splits = []
 			while len(splits) < n: 
+				# print(f'check c = {i}')
+
 				split_created = False
 				if i > maxiter or exhausted:
 					exhausted = True
 					break
 
 				while split_created is False:
+					# print(f'check d = {i}')
+
 					if i > maxiter or exhausted:
 						exhausted = True
 						break
@@ -147,11 +171,18 @@ def iterate_combss(X, y, q, lam, epsilon):
 					np.random.seed(time_seed)
 					indices = np.arange(p)  
 					np.random.shuffle(indices)
+					
+					# print(f'check e = {i}')
 
 					s_0, s_1 = gen_permutation(s)
 
-					f_s0 = obj_fn(s_0, X, y, lam)
-					f_s1 = obj_fn(s_1, X, y, lam)
+					# print(f'check f = {i}')
+
+					f_s0 = obj_fn(s_0, X, y)
+					f_s1 = obj_fn(s_1, X, y)
+					
+					# print(f'check f_s0 = {f_s0}')
+					# print(f'check f_s1 = {f_s1}')
 
 					s, split_created, = iterate_logic(s_0 = s_0, s_1 = s_1, f_s0 = f_s0, f_s1 = f_s1, 
 												level = level, split_created = split_created)
@@ -160,14 +191,14 @@ def iterate_combss(X, y, q, lam, epsilon):
 					# print(f'f_s1 = {f_s1}')
 					# print(f'split_created = {split_created}')
 
-					print(f'len(promoted_list) = {len(promoted_list)}')
-					print(f'len(splits) = {len(splits)}')
+					# print(f'len(promoted_list) = {len(promoted_list)}')
+					# print(f'len(splits) = {len(splits)}')
 
 					if split_created is True:
 						# BIG ERROR, never letting me get through this duplicate stage.
 						# duplicate = any(tuple(s.flat) == tuple(arr.flat) for arr in promoted_list)
 						duplicate = False
-						print(f'duplicate: {duplicate}')
+						# print(f'duplicate: {duplicate}')
 						# print(f'step: b')
 						if duplicate:
 							split_created = False
@@ -187,9 +218,8 @@ def iterate_combss(X, y, q, lam, epsilon):
 					if i > maxiter:
 						exhausted = True
 						break
-					print(i)
 		# print(f'step: f')
-		fs_values = np.array([obj_fn(s, X, y, lam) for s in promoted_list])
+		fs_values = np.array([obj_fn(s, X, y) for s in promoted_list])
 		pairs = list(zip(promoted_list, fs_values))
 
 		sorted_pairs = sorted(pairs, key=lambda x: x[1])
@@ -206,8 +236,8 @@ def iterate_combss(X, y, q, lam, epsilon):
 		level = fs_sorted[N-1]
 		print(f'level: {level}')
 
-
 		promoted_list = sorted_candidates[:N].copy()
+		i += 1
 
 	final_indices = top_candidates[0]
 	model = np.where(final_indices != 0)[0]
@@ -215,175 +245,53 @@ def iterate_combss(X, y, q, lam, epsilon):
 	return model
 
 
-def combss_dynamicV6(X, y, 
-				   q = None,
-				   nlam = None,
-				   t_init= [],         # Initial t vector
-				   tau=0.5,               # tau parameter
-				   delta_frac=1, # delta_frac = n/delta
-				   fstage_frac = 0.5,    #fraction lambda values explored in first stage of dynamic grid
-				   eta=0.0,               # Truncation parameter
-				   epoch=10,           # Epoch for termination 
-				   gd_maxiter=1000, # Maximum number of iterations allowed by GD
-				   gd_tol=1e-5,         # Tolerance of GD
-				   cg_maxiter=None, # Maximum number of iterations allowed by CG
-				   cg_tol=1e-5):        # Tolerance of CG
-	"""
-	Dynamic grid of lambda is generated as follows: We are given maximum model size $q$ of interest. 
-	
-	First pass: We start with $\lambda = \lambda_{\max} = \mathbf{y}^\top \mathbf{y}/n$, 
-				where an empty model is selected, and use $\lambda \leftarrow \lambda/2$ 
-				until we find model of size larger than $q$. 
-	
-	Second pass: Then, suppose $\lambda_{grid}$ is (sorted) vector of $\lambda$ valued exploited in 
-				 the first pass, we move from the smallest value to the large value on this grid, 
-				 and run COMBSS at $\lambda = (\lambda_{grid}[k] + \lambda_{grid}[k+1])/2$ if $\lambda_{grid}[k]$ 
-				 and $\lambda_{grid}[k+1]$ produced models with different sizes. 
-				 We repeat this until the size of $\lambda_{grid}$ is larger than a fixed number $nlam$.
-	"""
+def combss_subsets(X, y, q = None): 
+
 	(n, p) = X.shape
 	
 	# If q is not given, take q = n.
 	if q == None:
 		q = min(n, p)
-	
-	# If number of lambda is not given, take it to be n.
-	if nlam == None:
-		nlam == n
-	t_init = np.array(t_init) 
-	if t_init.shape[0] == 0:
-		t_init = np.ones(p)*0.5
-	
-	if cg_maxiter == None:
-		cg_maxiter = n
-	
-	lam_max = y@y/n # max value for lambda
 
 	# Lists to store the findings
 	model_list = []
-	#model_seq_list = []
-	
-	# t_list = []
-	# t_seq_list = []
-	
-	# beta_list = []
-	# beta_seq_list = []
-	
-	lam_list = []
-	lam_vs_size = []
-	
-	# converge_list = []
+	model_sizes = []
 
-	lam = lam_max
-	count_lam = 0
+	for i in range(q+1):
+		model = iterate_combss(X, y, i, q, epsilon = 1e-3)
 
-	## First pass on the dynamic lambda grid
-	stop = False
-	#print('First pass of lambda grid is running with fraction %s' %fstage_frac)
-	i = 0
-	while not stop:
-		model = iterate_combss(X, y, q, lam, epsilon = 1e-3)
-		len_model = model.shape[0]
-
-		lam_list.append(lam)
 		model_list.append(model)
-		lam_vs_size.append(np.array((lam, len_model)))
-		count_lam += 1
-		print(len_model)
-		if len_model >= q or count_lam > nlam*fstage_frac:
-			stop = True
-		lam = lam/2
-		#print('lam = ', lam, 'len of model = ', len_model)
-		i += 1
-
-
-	## Second pass on the dynamic lambda grid
-	stop = False
-	#print('Second pass of lambda grid is running')
-	while not stop:
-		temp = np.array(lam_vs_size)
-		order = np.argsort(temp[:, 1])
-		lam_vs_size_ordered = np.flip(temp[order], axis=0)        
-
-		## Find the next index
-		for i in range(order.shape[0]-1):
-
-			if count_lam <= nlam and lam_vs_size_ordered[i+1][1] <= q and  (lam_vs_size_ordered[i+1][1] != lam_vs_size_ordered[i][1]):
-
-				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
-
-				model = iterate_combss(X, y, q, lam, epsilon = 1e-3)
-				len_model = model.shape[0]
-
-				lam_list.append(lam)
-				# t_list.append(t_final)
-				# beta_list.append(beta)
-				model_list.append(model)
-				lam_vs_size.append(np.array((lam, len_model)))    
-				count_lam += 1
-
-		stop = True
+		model_sizes.append(i)
 	
-	return  (model_list, lam_list)
+	return (model_list, model_sizes)
 
 
-def combssV6(X_train, y_train, X_test, y_test, 
-			q = None,           # maximum model size
-			nlam = 50,        # number of values in the lambda grid
-			t_init= [],         # Initial t vector
-			tau=0.5,               # tau parameter
-			delta_frac=1, # delta_frac = n/delta
-			eta=0.001,               # Truncation parameter
-			epoch=10,           # Epoch for termination 
-			gd_maxiter=1000, # Maximum number of iterations allowed by GD
-			gd_tol=1e-5,         # Tolerance of GD
-			cg_maxiter=None, # Maximum number of iterations allowed by CG
-			cg_tol=1e-5):
-	""" 
-	COMBSS with SubsetMapV1
+def combssV6(X_train, y_train, X_test, y_test, q = None):
 	
-	This is the first version of COMBSS available in the paper. 
-	In particular, we only look at the final t obtained by 
-	the gradient descent algorithm (ADAM Optimizer) and consider the model corresponds 
-	to significant elements of t.
-	"""
-	
-	# Call COMBSS_dynamic with ADAM optimizer
 	(n, p) = X_train.shape
-	t_init = np.array(t_init) 
-	if t_init.shape[0] == 0:
-		t_init = np.ones(p)*0.5
-		
+
 	# If q is not given, take q = n
 	if q == None:
 		q = min(n, p)
 	
-	#print('Dynamic combss is called')
 	tic = time.process_time()
-	(model_list, lam_list) = combss_dynamicV6(X_train, y_train, q = q, nlam = nlam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter= gd_maxiter, gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
+	(model_list, model_sizes) = combss_subsets(X_train, y_train, q = q)
 	toc = time.process_time()
-	#print('Dynamic combss is completed')
-	# t_arr = np.array(t_list)
-	
-	"""
-	Computing the MSE on the test data
-	"""
-	nlam = len(lam_list)
-	mse_list = [] # to strore prediction error for each lam
-	beta_list = []
-	
-	for i in range(nlam):
-		model_final = model_list[i]
-		# len_s = s_final.shape[0]
 
-		# if 0 < len_s < n:
+	mse_list = [] 
+	beta_list = []
+	print(f'model_list = {model_list}')
+	
+	for i in range(q+1):
+		model_final = model_list[i]
+		print(f'model_final = {model_final}')
+
 		X_hat = X_train[:, model_final]
 		X_hatT = X_hat.T
 
 		X_hatTy = X_hatT@y_train
 		XX_hat = X_hatT@X_hat
 		
-
 		beta_hat = pinv(XX_hat)@X_hatTy 
 		X_hat = X_test[:, model_final]
 		mse = np.square(y_test - X_hat@beta_hat).mean()
@@ -391,19 +299,11 @@ def combssV6(X_train, y_train, X_test, y_test,
 		beta_pred = np.zeros(p)
 		beta_pred[model_final] = beta_hat
 		beta_list.append(beta_pred)
-		# elif len_s >= n: 
-		#     mse = 2*np.square(y_test).mean()
-		#     beta_list.append(beta_hat)
-		# else:
-		#     mse = np.square(y_test).mean()
 
-	#print(pred_err)
-	## Convert to numpy array
-	# mse_arr = np.array(mse_list)  
 	ind_opt = np.argmin(mse_list)
-	lam_opt = lam_list[ind_opt]
-	model_opt = model_list[ind_opt]
+	q_opt = model_sizes[ind_opt]
+	model_opt = model_sizes[ind_opt]
 	mse_opt = mse_list[ind_opt] 
 	beta_opt = beta_list[ind_opt]
 	
-	return model_opt, mse_opt, beta_opt, lam_opt, toc - tic
+	return model_opt, mse_opt, beta_opt, q_opt, toc - tic

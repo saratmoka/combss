@@ -620,7 +620,7 @@ def bulk_simV6(n, p, q, beta_type, K0, snr, corr,
 					 nlam=25,
 					 eta=0.01,
 					 seed=1):
-	metrics = ['MSE', 'PE', 'MCC', 'Accuracy', 'Sensitivity', 'Specificity', 'F1_score', 'Precision', 'Time', 'Opt Lambda']
+	metrics = ['MSE', 'PE', 'MCC', 'Accuracy', 'Sensitivity', 'Specificity', 'F1_score', 'Precision', 'Time', 'Opt Model Size']
 	names = metrics + [ str(i) for i in range(p)] 
 	
 	nmetrics = len(metrics)
@@ -653,8 +653,7 @@ def bulk_simV6(n, p, q, beta_type, K0, snr, corr,
 			n_tinit = 1
 		
 
-		result1 = variant6.combssV6(X_train, y_train, X_test, y_test, t_init=t_init[0], 
-						delta_frac=delta_frac,  q = q, nlam = nlam, eta=eta, cg_maxiter = None)
+		result1 = variant6.combssV6(X_train, y_train, X_test, y_test, q = q)
 		"""
 		Note that,
 			result1 = [model_opt, mse_opt, beta_opt, lam_opt, time]
@@ -663,8 +662,7 @@ def bulk_simV6(n, p, q, beta_type, K0, snr, corr,
 		
 		for i in range(n_tinit-1):
 			
-			result_temp = variant6.combssV6(X_train, y_train, X_test, y_test, t_init=t_init[i+1], 
-								 delta_frac=delta_frac, q = q, nlam = nlam, eta=eta, cg_maxiter = None)
+			result_temp = variant6.combssV6(X_train, y_train, X_test, y_test, q = q)
 
 			running_time += result_temp[4]
 

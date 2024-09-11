@@ -543,9 +543,10 @@ def combssV0(X_train, y_train, X_test, y_test,
 	nlam = len(lam_list)
 	mse_list = [] 
 	beta_list = []
-	
+
 	for i in range(nlam):
 		model_final = model_list[i]
+
 
 		X_hat = X_train[:, model_final]
 		X_hatT = X_hat.T

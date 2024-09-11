@@ -12,11 +12,11 @@ eta = 0.001
 n_tinit = 1
 
 p = 20
-q = 10
+q = 20
 
 snr_res = {}
 
-snr_high_list = [1, 2, 3, 4, 5, 6, 7, 8]
+snr_high_list = [2]
 for snr in snr_high_list:
     df0 = pd.read_csv("./splitting_test/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
     
@@ -42,8 +42,7 @@ for snr in snr_high_list:
     version0.update({"Precision": avg_PrecisionV0})
     version0.update({"Time": avg_TimeV0})
 
-    n_datasets_6 = 10
-    df1 = pd.read_csv("./splitting_test/COMBSSV6-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets_6, nlam, eta))
+    df1 = pd.read_csv("./splitting_test/COMBSSV6-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
     version1 = {}
     avg_MSEV1 = df1['MSE'].mean()
     avg_PEV1 = df1['PE'].mean()
