@@ -107,7 +107,12 @@ def iterate_combss(X, y, u, q, epsilon):
 		# Randomly choose q indices to set to 1
 		random_ones = np.random.choice(p, u, replace=False)
 		random_model[random_ones] = 1
-		candidates.append(random_model)
+		model_tuple = tuple(random_model)
+
+		# Only add if this model is unique
+		if model_tuple not in seen:
+			candidates.append(random_model)
+			seen.add(model_tuple)
 	
 	fs_values = np.array([obj_fn(s, X, y) for s in candidates])
 	pairs = list(zip(candidates, fs_values))
@@ -196,24 +201,23 @@ def iterate_combss(X, y, u, q, epsilon):
 
 					if split_created is True:
 						# BIG ERROR, never letting me get through this duplicate stage.
-						# duplicate = any(tuple(s.flat) == tuple(arr.flat) for arr in promoted_list)
-						duplicate = False
-						# print(f'duplicate: {duplicate}')
-						# print(f'step: b')
-						if duplicate:
-							split_created = False
-							# print(f'step: c')
-							continue
-						else:
-							splits.append(s)
-							promoted_list.append(s)
-							# print(f'step: d')
-							break	
-					if len(splits) >= n:
-						# print(f'step: e')
+						model_tuple = tuple(s)
+
+					# Only add if this model is unique
+					if model_tuple not in seen:
+						splits.append(random_model)
+						seen.add(model_tuple)
 						break
+					else: 
+						split_created = False
+
+					if len(splits) >= n:
+						promoted_list.extend(s)
+						break
+
 					# print(f'len(promoted_list) = {len(promoted_list)}')
 					# print(f'len(splits) = {len(splits)}')
+
 					i += 1
 					if i > maxiter:
 						exhausted = True
