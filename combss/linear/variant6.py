@@ -15,7 +15,7 @@ from math import comb
 Best Subset Selection: Heuristic inspired by Splitting Method, Subset Permutations
 '''
 
-def gen_permutation(s):
+def gen_permutation(s, seen):
 
 	zeros_ind = np.where(s == 0)[0]
 	ones_ind = np.where(s != 0)[0]
@@ -27,22 +27,48 @@ def gen_permutation(s):
 	s_0[s_in] = 1
 	s_0[s_out] = 0
 
+	model_tuple_0 = tuple(s_0)
+	# Only add if this model is unique
+	while model_tuple_0 in seen:
+		s_0 = s.copy()
+		random.seed(secrets.randbits(64))
+		# print(f'secrets.randbits(64) = {secrets.randbits(64)}')
+		s_in = random.choice(zeros_ind)
+		s_out = random.choice(ones_ind)
+		s_0[s_in] = 1
+		s_0[s_out] = 0
+		model_tuple_0 = tuple(s_0)
+		# print(f'duplicate found for s_0')
+	
+	seen.add(model_tuple_0)
+	print(f's_0 added')
+
+
 	s_1 = s.copy()
 	random.seed(secrets.randbits(64))
 	s_in = random.choice(zeros_ind)
 	s_out = random.choice(ones_ind)
 	s_1[s_in] = 1
 	s_1[s_out] = 0
-	
-	while (s_0==s_1).all():
+
+	model_tuple_1 = tuple(s_1)
+
+	while model_tuple_1 in seen:
 		s_1 = s.copy()
 		random.seed(secrets.randbits(64))
 		s_in = random.choice(zeros_ind)
 		s_out = random.choice(ones_ind)
 		s_1[s_in] = 1
 		s_1[s_out] = 0
+		model_tuple_1 = tuple(s_1)
+		# print(f'duplicate found for s_1')
 
-	return s_0, s_1
+	
+	seen.add(model_tuple_1)
+	print(f's_1 added')
+
+
+	return s_0, s_1, seen
 
 def obj_fn(t, X, y):
 	(n,p) = X.shape
@@ -114,6 +140,8 @@ def iterate_combss(X, y, u, q, epsilon):
 			candidates.append(random_model)
 			seen.add(model_tuple)
 	
+	print(f'candidate initialisation complete')
+	
 	fs_values = np.array([obj_fn(s, X, y) for s in candidates])
 	pairs = list(zip(candidates, fs_values))
 
@@ -137,7 +165,8 @@ def iterate_combss(X, y, u, q, epsilon):
 	maxiter = 100000
 	i = 0
 	exhausted = False
-	while abs(level_old - level)/level > epsilon and i < maxiter:
+	while (abs(level_old - level)/level > epsilon and i < maxiter):
+		print(f'seen: {len(seen)}')
 		level_old = level
 		candidates = top_candidates
 		N = len(top_candidates)
@@ -178,9 +207,14 @@ def iterate_combss(X, y, u, q, epsilon):
 					np.random.shuffle(indices)
 					
 					# print(f'check e = {i}')
+					if len(seen) == comb(p, u):
+						exhausted = True
+						print('all combos exhausted')
+						break
 
-					s_0, s_1 = gen_permutation(s)
-
+					s_0, s_1, seen = gen_permutation(s, seen)
+					
+					
 					# print(f'check f = {i}')
 
 					f_s0 = obj_fn(s_0, X, y)
@@ -200,23 +234,14 @@ def iterate_combss(X, y, u, q, epsilon):
 					# print(f'len(splits) = {len(splits)}')
 
 					if split_created is True:
-						# BIG ERROR, never letting me get through this duplicate stage.
-						model_tuple = tuple(s)
-
-					# Only add if this model is unique
-					if model_tuple not in seen:
-						splits.append(random_model)
-						seen.add(model_tuple)
-						break
-					else: 
-						split_created = False
+						splits.append(s)
 
 					if len(splits) >= n:
-						promoted_list.extend(s)
+						promoted_list.extend(splits)
 						break
 
-					# print(f'len(promoted_list) = {len(promoted_list)}')
-					# print(f'len(splits) = {len(splits)}')
+					print(f'len(promoted_list) = {len(promoted_list)}')
+					print(f'len(splits) = {len(splits)}')
 
 					i += 1
 					if i > maxiter:
