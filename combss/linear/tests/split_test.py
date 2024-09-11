@@ -22,7 +22,7 @@ np.set_printoptions(suppress=True)
 # %%
 n = 100
 p = 20
-q = 18
+q = 20
 
 K0 = 10
 eta = 0.001

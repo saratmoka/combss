@@ -95,10 +95,9 @@ def iterate_combss(X, y, u, q, epsilon):
 	C = min(C, comb(p,u))
 
 	N = int(C/5) # Number of Candidates promoted to next level
-	print(f'For a model of size {u}, C = {C} candidates are explored, and N = {N} are promoted to the next level.')
+	# print(f'For a model of size {u}, C = {C} candidates are explored, and N = {N} are promoted to the next level.')
 
 	candidates = []
-	seen = set()
 
 	while len(candidates) < C:
 		# Generate a random binomial vector
@@ -121,15 +120,15 @@ def iterate_combss(X, y, u, q, epsilon):
 
 	# Find the largest and 4th largest f() values
 	optimal = fs_sorted[0]
-	print(f'initial optimal: {optimal}')
+	# print(f'initial optimal: {optimal}')
 
 	level = fs_sorted[N-1]
-	print(f'initial level: {level}')
+	# print(f'initial level: {level}')
 
 	promoted_list = sorted_candidates[:N].copy()
 
 	level_old = np.inf
-	maxiter = 100000
+	maxiter = 10000
 	i = 0
 	exhausted = False
 	while abs(level_old - level)/level > epsilon and i < maxiter:
@@ -151,8 +150,8 @@ def iterate_combss(X, y, u, q, epsilon):
 			# print(f'For {u}, C = {C} and N = {N}, n should be 4 and is {n}.')
 
 
-			splits = []
-			while len(splits) < n: 
+			splits = 0
+			while splits < n: 
 				# print(f'check c = {i}')
 
 				split_created = False
@@ -160,7 +159,7 @@ def iterate_combss(X, y, u, q, epsilon):
 					exhausted = True
 					break
 
-				while split_created is False:
+				while splits < n and split_created is False:
 					# print(f'check d = {i}')
 
 					if i > maxiter or exhausted:
@@ -172,53 +171,26 @@ def iterate_combss(X, y, u, q, epsilon):
 					indices = np.arange(p)  
 					np.random.shuffle(indices)
 					
-					# print(f'check e = {i}')
-
 					s_0, s_1 = gen_permutation(s)
-
-					# print(f'check f = {i}')
 
 					f_s0 = obj_fn(s_0, X, y)
 					f_s1 = obj_fn(s_1, X, y)
-					
-					# print(f'check f_s0 = {f_s0}')
-					# print(f'check f_s1 = {f_s1}')
 
 					s, split_created, = iterate_logic(s_0 = s_0, s_1 = s_1, f_s0 = f_s0, f_s1 = f_s1, 
 												level = level, split_created = split_created)
 					
-					# print(f'f_s0 = {f_s0}')
-					# print(f'f_s1 = {f_s1}')
-					# print(f'split_created = {split_created}')
-
-					# print(f'len(promoted_list) = {len(promoted_list)}')
-					# print(f'len(splits) = {len(splits)}')
-
 					if split_created is True:
-						# BIG ERROR, never letting me get through this duplicate stage.
-						# duplicate = any(tuple(s.flat) == tuple(arr.flat) for arr in promoted_list)
-						duplicate = False
-						# print(f'duplicate: {duplicate}')
-						# print(f'step: b')
-						if duplicate:
-							split_created = False
-							# print(f'step: c')
-							continue
-						else:
-							splits.append(s)
-							promoted_list.append(s)
-							# print(f'step: d')
-							break	
-					if len(splits) >= n:
-						# print(f'step: e')
+						splits += 1
+						promoted_list.append(s)
+						break	
+					if splits >= n:
 						break
-					# print(f'len(promoted_list) = {len(promoted_list)}')
-					# print(f'len(splits) = {len(splits)}')
+
 					i += 1
 					if i > maxiter:
 						exhausted = True
 						break
-		# print(f'step: f')
+
 		fs_values = np.array([obj_fn(s, X, y) for s in promoted_list])
 		pairs = list(zip(promoted_list, fs_values))
 
@@ -231,10 +203,10 @@ def iterate_combss(X, y, u, q, epsilon):
 		fs_sorted = [pair[1] for pair in sorted_pairs]
 
 		optimal = fs_sorted[0]
-		print(f'optimal: {optimal}')
+		# print(f'optimal: {optimal}')
 
 		level = fs_sorted[N-1]
-		print(f'level: {level}')
+		# print(f'level: {level}')
 
 		promoted_list = sorted_candidates[:N].copy()
 		i += 1
@@ -280,11 +252,11 @@ def combssV6(X_train, y_train, X_test, y_test, q = None):
 
 	mse_list = [] 
 	beta_list = []
-	print(f'model_list = {model_list}')
+	# print(f'model_list = {model_list}')
 	
 	for i in range(q+1):
 		model_final = model_list[i]
-		print(f'model_final = {model_final}')
+		# print(f'model_final = {model_final}')
 
 		X_hat = X_train[:, model_final]
 		X_hatT = X_hat.T
