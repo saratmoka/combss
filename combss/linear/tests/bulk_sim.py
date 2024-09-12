@@ -656,7 +656,7 @@ def bulk_simV6(n, p, q, beta_type, K0, snr, corr,
 		result1 = variant6.combssV6(X_train, y_train, X_test, y_test, q = q)
 		"""
 		Note that,
-			result1 = [model_opt, mse_opt, beta_opt, lam_opt, time]
+			result1 = [model_opt, mse_opt, beta_opt, Opt Model Size, time]
 		"""
 		running_time += result1[4]
 		

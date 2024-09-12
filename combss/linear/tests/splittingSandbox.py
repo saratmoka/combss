@@ -28,4 +28,6 @@ print("y_train shape:", y_train.shape)
 print("y_test shape:", y_test.shape)
 
 model_opt, mse_opt, beta_opt, q_opt, timer = variant6.combssV6(X_train, y_train, X_test, y_test, q = 10)
+
+print(f'optimal: {(model_opt, mse_opt)}')
 # %%

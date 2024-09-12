@@ -14,11 +14,17 @@ n_tinit = 1
 p = 1000
 q = 20
 
+if p == 20:
+    dimension_type = 'Low'
+else:
+    dimension_type = 'High'
+
+
 snr_res = {}
 
 snr_high_list = [2, 3, 4, 5, 6, 7, 8]
 for snr in snr_high_list:
-    df0 = pd.read_csv("./splitting_test/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+    df0 = pd.read_csv("./coordinateFriday/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
     
     version0 = {}
     avg_MSEV0 = df0['MSE'].mean()
@@ -43,7 +49,7 @@ for snr in snr_high_list:
     version0.update({"Time": avg_TimeV0})
 
 
-    df1 = pd.read_csv("./splitting_test/COMBSSV5-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+    df1 = pd.read_csv("./splitting_test/COMBSSV6-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
     version1 = {}
     avg_MSEV1 = df1['MSE'].mean()
     avg_PEV1 = df1['PE'].mean()
@@ -54,7 +60,7 @@ for snr in snr_high_list:
     avg_F1V1 = df1['F1_score'].mean()
     avg_PrecisionV1 = df1['Precision'].mean()
     avg_TimeV1 = df1['Time'].mean()
-    avg_LambdaV1 = df1['Opt Lambda'].mean()
+    avg_LambdaV1 = df1['Opt Model Size'].mean()
 
     version1.update({"MSE": avg_MSEV1})
     version1.update({"PE": avg_PEV1})
@@ -127,7 +133,7 @@ combssc1, = plt.plot(snr_list, mseV1, label = "Splitting Method", color = "red",
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('MSE')
-plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, Low Dimension')
+plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, {dimension_type} Dimension')
 plt.legend(handles = [combssv0, combssc1])
 ax.set_ylim(bottom=0)
 plt.show()
@@ -140,7 +146,7 @@ combssc1, = plt.plot(snr_list, peV1, label = "Splitting Method", color = "red", 
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Prediction Error')
-plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, Low Dimension')
+plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, {dimension_type} Dimension')
 plt.legend(handles = [combssv0, combssc1])
 ax.set_ylim(bottom=0)
 plt.show()
@@ -153,7 +159,7 @@ combssc1, = plt.plot(snr_list, mccV1, label = "Splitting Method", color = "red",
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('MCC')
-plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, Low Dimension')
+plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, {dimension_type} Dimension')
 plt.legend(handles = [combssv0, combssc1])
 ax.set_ylim(bottom=0)
 plt.show()
@@ -166,7 +172,7 @@ combssc1, = plt.plot(snr_list, f1V1, label = "Splitting Method", color = "red", 
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('F1 Score')
-plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, Low Dimension')
+plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, {dimension_type} Dimension')
 plt.legend(handles = [combssv0, combssc1])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
@@ -180,7 +186,7 @@ combssc1, = plt.plot(snr_list, sensitivityV1, label = "Splitting Method", color 
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Sensitivity')
-plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, Low Dimension')
+plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, {dimension_type} Dimension')
 plt.legend(handles = [combssv0, combssc1])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
@@ -194,7 +200,7 @@ combssc1, = plt.plot(snr_list, specificityV1, label = "Splitting Method", color 
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Specificity')
-plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, Low Dimension')
+plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, {dimension_type} Dimension')
 plt.legend(handles = [combssv0, combssc1])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
@@ -207,7 +213,7 @@ combssv0, = plt.plot(snr_list, timeV0, label = "COMBSSV0", color = "black", mark
 combssc1, = plt.plot(snr_list, timeV1, label = "Splitting Method", color = "red", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Average Time per Dataset (seconds)')
-plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, Low Dimension')
+plt.title(f'COMBSSV0 vs Splitting Method, Case {beta_type}, {dimension_type} Dimension')
 plt.legend(handles = [combssv0, combssc1])
 ax.set_ylim(bottom=0)
 plt.show()
