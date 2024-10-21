@@ -2,7 +2,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-beta_type = 1
+beta_type = 2
 corr = 0.8
 
 n = 100
@@ -199,7 +199,7 @@ ax.set_ylim(top=1)
 plt.show()
 
 # %%
-
+# Plot Time
 fig, ax = plt.subplots()
 combssO, = plt.plot(snr_list, timeV0, label = "COMBSS Improved Gradient", color = "black", marker='x')
 combssN, = plt.plot(snr_list, timeV1, label = "COMBSS Normalised Improved Gradient", color = "red", marker='x')

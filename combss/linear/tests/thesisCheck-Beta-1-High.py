@@ -16,13 +16,21 @@ q = 20
 
 snr_list = [2, 3, 4, 5, 6, 7, 8]
 for snr in snr_list:
-    df0 = pd.read_csv("./finalResults/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
-    df1 = pd.read_csv("./finalResults/COMBSSImproved-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+    df0 = pd.read_csv("./finalResults/COMBSSV0-normalised-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+    df1 = pd.read_csv("./finalResults/COMBSSV0-Normalised-Improved-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 
 
     MSEV0 = df0['MSE']
     MSEV1 = df1['MSE']
+
+    MSEV0Avg = df0['MSE'].mean()
+    MSEV1Avg = df1['MSE'].mean()
     print(f'The MSE are identical: {MSEV0.equals(MSEV1)}')
+    if not (MSEV0.equals(MSEV1)):
+        print(f'Average MSE for Normalised: {MSEV0Avg}')
+        print(f'Average MSE for Normalised and Improved Gradient: {MSEV0Avg}')
+
+    
 
     PEV0 = df0['PE']
     PEV1 = df1['PE']
