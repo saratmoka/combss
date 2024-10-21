@@ -18,7 +18,7 @@ snr_res = {}
 
 snr_low_list = [0.5, 1, 2, 3, 4, 5, 6, 7, 8]
 for snr in snr_low_list:
-    df0 = pd.read_csv("./finalResults/COMBSSV0-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+    df0 = pd.read_csv("./finalResults/COMBSSImproved-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
     
     version0 = {}
     avg_MSEV0 = df0['MSE'].mean()
@@ -43,7 +43,7 @@ for snr in snr_low_list:
     version0.update({"Time": avg_TimeV0})
 
 
-    df1 = pd.read_csv("./finalResults/COMBSSImproved-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+    df1 = pd.read_csv("./finalResults/COMBSSV0-Normalised-Improved-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 
     version1 = {}
     avg_MSEV1 = df1['MSE'].mean()
@@ -68,8 +68,6 @@ for snr in snr_low_list:
     version1.update({"Time": avg_TimeV1})
 
     snr_res.update({snr: [version0, version1]})
-
-
 
 #%%
 # Plot Accuracy
@@ -98,6 +96,7 @@ lambdaV1 = []
 snr_list = snr_res.keys()
 
 #%%
+
 for snr in snr_res.values():
     mseV0.append(snr[0].get("MSE"))
     peV0.append(snr[0].get("PE"))
@@ -120,18 +119,14 @@ for snr in snr_res.values():
     timeV1.append(snr[1].get("Time"))
 
 #%%
-print(version0)
-print(version1)
-
-#%%
 # Plot MSE
 fig, ax = plt.subplots()
-combssO, = plt.plot(snr_list, mseV0, label = "COMBSS Original", color = "black", marker='x')
-combssN, = plt.plot(snr_list, mseV1, label = "COMBSS New Gradient", color = "red", marker='x')
+combssO, = plt.plot(snr_list, mseV0, label = "COMBSS Improved Gradient", color = "black", marker='x')
+combssN, = plt.plot(snr_list, mseV1, label = "COMBSS Normalised Improved Gradient", color = "red", marker='x')
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('MSE')
-plt.title('COMBSS Original vs COMBSS New MSE')
+plt.title('COMBSS Improved Gradient vs COMBSS Normalised Improved Gradient MSE, Beta Case 1 Low Dimension')
 plt.legend(handles = [combssO, combssN])
 ax.set_ylim(bottom=0)
 plt.show()
@@ -139,12 +134,12 @@ plt.show()
 #%%
 # Plot Prediction Error
 fig, ax = plt.subplots()
-combssO, = plt.plot(snr_list, peV0, label = "COMBSS Original", color = "black", marker='x')
-combssN, = plt.plot(snr_list, peV1, label = "COMBSS New Gradient", color = "red", marker='x')
+combssO, = plt.plot(snr_list, peV0, label = "COMBSS Improved Gradient", color = "black", marker='x')
+combssN, = plt.plot(snr_list, peV1, label = "COMBSS Normalised Improved Gradient", color = "red", marker='x')
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Prediction Error')
-plt.title('COMBSS Original vs COMBSS New PE')
+plt.title('COMBSS Improved Gradient vs COMBSS Normalised Improved Gradient PE, Beta Case 1 Low Dimension')
 plt.legend(handles = [combssO, combssN])
 ax.set_ylim(bottom=0)
 plt.show()
@@ -152,12 +147,12 @@ plt.show()
 #%%
 # Plot MCC
 fig, ax = plt.subplots()
-combssO, = plt.plot(snr_list, mccV0, label = "COMBSS Original", color = "black", marker='x')
-combssN, = plt.plot(snr_list, mccV1, label = "COMBSS New Gradient", color = "red", marker='x')
+combssO, = plt.plot(snr_list, mccV0, label = "COMBSS Improved Gradient", color = "black", marker='x')
+combssN, = plt.plot(snr_list, mccV1, label = "COMBSS Normalised Improved Gradient", color = "red", marker='x')
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('MCC')
-plt.title('COMBSS Original vs COMBSS New MCC')
+plt.title('COMBSS Improved Gradient vs COMBSS Normalised Improved Gradient MCC, Beta Case 1 Low Dimension')
 plt.legend(handles = [combssO, combssN])
 ax.set_ylim(bottom=0)
 plt.show()
@@ -165,12 +160,12 @@ plt.show()
 #%%
 # Plot Accuracy
 fig, ax = plt.subplots()
-combssO, = plt.plot(snr_list, accuracyV0, label = "COMBSS Original", color = "black", marker='x')
-combssN, = plt.plot(snr_list, accuracyV1, label = "COMBSS New Gradient", color = "red", marker='x')
+combssO, = plt.plot(snr_list, accuracyV0, label = "COMBSS Improved Gradient", color = "black", marker='x')
+combssN, = plt.plot(snr_list, accuracyV1, label = "COMBSS Normalised Improved Gradient", color = "red", marker='x')
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Accuracy')
-plt.title('COMBSS Original vs COMBSS New Accuracy')
+plt.title('COMBSS Improved Gradient vs COMBSS Normalised Improved Gradient Accuracy, Beta Case 1 Low Dimension')
 plt.legend(handles = [combssO, combssN])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
@@ -179,12 +174,12 @@ plt.show()
 #%%
 # Plot F1 Score
 fig, ax = plt.subplots()
-combssO, = plt.plot(snr_list, f1V0, label = "COMBSS Original", color = "black", marker='x')
-combssN, = plt.plot(snr_list, f1V1, label = "COMBSS New Gradient", color = "red", marker='x')
+combssO, = plt.plot(snr_list, f1V0, label = "COMBSS Improved Gradient", color = "black", marker='x')
+combssN, = plt.plot(snr_list, f1V1, label = "COMBSS Normalised Improved Gradient", color = "red", marker='x')
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('F1 Score')
-plt.title('COMBSS Original vs COMBSS New F1 Score')
+plt.title('COMBSS Improved Gradient vs COMBSS Normalised Improved Gradient F1 Score, Beta Case 1 Low Dimension')
 plt.legend(handles = [combssO, combssN])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
@@ -193,11 +188,11 @@ plt.show()
 #%%
 # Plot Sensitivity
 fig, ax = plt.subplots()
-combssO, = plt.plot(snr_list, sensitivityV0, label = "COMBSS Original", color = "black", marker='x')
-combssN, = plt.plot(snr_list, sensitivityV1, label = "COMBSS New Gradient", color = "red", marker='x')
+combssO, = plt.plot(snr_list, sensitivityV0, label = "COMBSS Improved Gradient", color = "black", marker='x')
+combssN, = plt.plot(snr_list, sensitivityV1, label = "COMBSS Normalised Improved Gradient", color = "red", marker='x')
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Sensitivity')
-plt.title('COMBSS Original vs COMBSS New Sensitivity')
+plt.title('COMBSS Improved Gradient vs COMBSS Normalised Improved Gradient Sensitivity, Beta Case 1 Low Dimension')
 plt.legend(handles = [combssO, combssN])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
@@ -206,12 +201,12 @@ plt.show()
 #%%
 # Plot Specificity
 fig, ax = plt.subplots()
-combssO, = plt.plot(snr_list, specificityV0, label = "COMBSS Original", color = "black", marker='x')
-combssN, = plt.plot(snr_list, specificityV1, label = "COMBSS New Gradient", color = "red", marker='x')
+combssO, = plt.plot(snr_list, specificityV0, label = "COMBSS Improved Gradient", color = "black", marker='x')
+combssN, = plt.plot(snr_list, specificityV1, label = "COMBSS Normalised Improved Gradient", color = "red", marker='x')
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Specificity')
-plt.title('COMBSS Original vs COMBSS New Specificity')
+plt.title('COMBSS Improved Gradient vs COMBSS Normalised Improved Gradient Specificity, Beta Case 1 Low Dimension')
 plt.legend(handles = [combssO, combssN])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
@@ -220,12 +215,12 @@ plt.show()
 # %%
 
 fig, ax = plt.subplots()
-combssO, = plt.plot(snr_list, timeV0, label = "COMBSS Original", color = "black", marker='x')
-combssN, = plt.plot(snr_list, timeV1, label = "COMBSS New Gradient", color = "red", marker='x')
+combssO, = plt.plot(snr_list, timeV0, label = "COMBSS Improved Gradient", color = "black", marker='x')
+combssN, = plt.plot(snr_list, timeV1, label = "COMBSS Normalised Improved Gradient", color = "red", marker='x')
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Average Time per Dataset (seconds)')
-plt.title('COMBSS Original vs COMBSS New Average Time, Beta Case 1 Low Dimension')
+plt.title('COMBSS Improved Gradient vs COMBSS Normalised Improved Gradient Average Time, Beta Case 1 Low Dimension')
 plt.legend(handles = [combssO, combssN])
 ax.set_ylim(bottom=0)
 plt.show()
