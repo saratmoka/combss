@@ -96,10 +96,8 @@ timeV1 = []
 lambdaV1 = []
 
 snr_list = snr_res.keys()
-#%%
-print(snr_list)
-#%%
 
+#%%
 for snr in snr_res.values():
     mseV0.append(snr[0].get("MSE"))
     peV0.append(snr[0].get("PE"))
@@ -120,10 +118,6 @@ for snr in snr_res.values():
     f1V1.append(snr[1].get("F1"))
     precisionV1.append(snr[1].get("Precision"))
     timeV1.append(snr[1].get("Time"))
-
-#%%
-print(version0)
-print(version1)
 
 #%%
 # Plot MSE
@@ -227,7 +221,7 @@ combssN, = plt.plot(snr_list, timeV1, label = "COMBSS New Gradient", color = "re
 
 plt.xlabel('Signal to Noise Ratio')
 plt.ylabel('Average Time per Dataset (seconds)')
-plt.title('COMBSS Original vs COMBSS New Average Time')
+plt.title('COMBSS Original vs COMBSS New Average Time, Beta Case 2 Low Dimension')
 plt.legend(handles = [combssO, combssN])
 ax.set_ylim(bottom=0)
 plt.show()
