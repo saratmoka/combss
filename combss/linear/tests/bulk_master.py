@@ -55,14 +55,7 @@ for snr in snr_low_list:
                         nlam=nlam,
                         eta = eta,
                         seed=1234)
-    bulk_sim.bulk_simV1(n, p, q, beta_type, K0, snr, corr,
-                        t_init = t_init,
-                        delta_frac=delta_frac,
-                        n_datasets=n_datasets, 
-                        nlam=nlam,
-                        eta = eta,
-                        seed=1234)
-    bulk_sim.bulk_simV2(n, p, q, beta_type, K0, snr, corr,
+    bulk_sim.bulk_simImproved(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
                         delta_frac=delta_frac,
                         n_datasets=n_datasets, 
@@ -80,14 +73,7 @@ for snr in snr_low_list:
                         nlam=nlam,
                         eta = eta,
                         seed=1234)
-    bulk_sim.bulk_simV1(n, p, q, beta_type, K0, snr, corr,
-                        t_init = t_init,
-                        delta_frac=delta_frac,
-                        n_datasets=n_datasets, 
-                        nlam=nlam,
-                        eta = eta,
-                        seed=1234)
-    bulk_sim.bulk_simV2(n, p, q, beta_type, K0, snr, corr,
+    bulk_sim.bulk_simImproved(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
                         delta_frac=delta_frac,
                         n_datasets=n_datasets, 
@@ -113,7 +99,7 @@ ninit = len(t_init)
 nlam = 25
 
 delta_frac = 1
-n_datasets = 20
+n_datasets = 50
 
 #%%
 beta_type = 1
@@ -126,22 +112,15 @@ for snr in snr_high_list:
                         nlam=nlam,
                         eta = eta,
                         seed=1234)
-    bulk_sim.bulk_simV1(n, p, q, beta_type, K0, snr, corr,
+    bulk_sim.bulk_simImproved(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
                         delta_frac=delta_frac,
                         n_datasets=n_datasets, 
                         nlam=nlam,
                         eta = eta,
                         seed=1234)
-    bulk_sim.bulk_simV2(n, p, q, beta_type, K0, snr, corr,
-                        t_init = t_init,
-                        delta_frac=delta_frac,
-                        n_datasets=n_datasets, 
-                        nlam=nlam,
-                        eta = eta,
-                        seed=1234)
-    
-# %%
+
+#%% 
 beta_type = 2
 snr_high_list = [2, 3, 4, 5, 6, 7, 8]
 for snr in snr_high_list:
@@ -152,18 +131,13 @@ for snr in snr_high_list:
                         nlam=nlam,
                         eta = eta,
                         seed=1234)
-    bulk_sim.bulk_simV1(n, p, q, beta_type, K0, snr, corr,
+    bulk_sim.bulk_simImproved(n, p, q, beta_type, K0, snr, corr,
                         t_init = t_init,
                         delta_frac=delta_frac,
                         n_datasets=n_datasets, 
                         nlam=nlam,
                         eta = eta,
                         seed=1234)
-    bulk_sim.bulk_simV2(n, p, q, beta_type, K0, snr, corr,
-                        t_init = t_init,
-                        delta_frac=delta_frac,
-                        n_datasets=n_datasets, 
-                        nlam=nlam,
-                        eta = eta,
-                        seed=1234)
+# %%
+print("b")
 # %%
