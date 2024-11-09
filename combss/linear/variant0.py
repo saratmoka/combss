@@ -349,7 +349,6 @@ def combss_dynamicV0(X, y,
 
 	## Second pass on the dynamic lambda grid
 	stop = False
-	#print('Second pass of lambda grid is running')
 	while not stop:
 		temp = np.array(lam_vs_size)
 		order = np.argsort(temp[:, 1])
@@ -367,16 +366,18 @@ def combss_dynamicV0(X, y,
 				len_model = model.shape[0]
 
 				lam_list.append(lam)
-				# t_list.append(t_final)
-				# beta_list.append(beta)
-				# t_seq_list.append(t_seq)
-				# beta_seq_list.append(beta_seq)
 				model_list.append(model)
-				# converge_list.append(converge)
 				lam_vs_size.append(np.array((lam, len_model)))    
 				count_lam += 1
 
-		stop = True
+			if count_lam > nlam:
+				stop = True
+				break
+
+	temp = np.array(lam_vs_size)
+	order = np.argsort(temp[:, 1])
+	model_list = [model_list[i] for i in order]
+	lam_list = [lam_list[i] for i in order]
 	
 	return  (model_list, lam_list)
 

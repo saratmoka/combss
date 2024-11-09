@@ -20,6 +20,8 @@ reset()
 
 import numpy as np
 import bulk_sim
+import time
+
 
 np.set_printoptions(suppress=True)
 
@@ -45,27 +47,19 @@ delta_frac = 1
 n_datasets = 50
 
 #%%
-beta_type = 1
-snr_low_list = [0.5, 1, 2, 3, 4, 5, 6, 7, 8]
-for snr in snr_low_list:
-    bulk_sim.bulk_sim_normalised_improved(n, p, q, beta_type, K0, snr, corr,
-                        t_init = t_init,
-                        delta_frac=delta_frac,
-                        n_datasets=n_datasets, 
-                        nlam=nlam,
-                        eta = eta,
-                        seed=1234)
-# %%
-beta_type = 2
-snr_low_list = [0.5, 1, 2, 3, 4, 5, 6, 7, 8]
-for snr in snr_low_list:
-    bulk_sim.bulk_sim_normalised_improved(n, p, q, beta_type, K0, snr, corr,
-                        t_init = t_init,
-                        delta_frac=delta_frac,
-                        n_datasets=n_datasets, 
-                        nlam=nlam,
-                        eta = eta,
-                        seed=1234)
+beta_list = [1,2]
+for beta_type in beta_list:
+    snr_low_list = [0.5, 1, 2, 3, 4, 5, 6, 7, 8]
+    for snr in snr_low_list:
+        bulk_sim.bulk_simV1(n, p, q, beta_type, K0, snr, corr,
+                            t_init = t_init,
+                            delta_frac=delta_frac,
+                            n_datasets=n_datasets, 
+                            nlam=nlam,
+                            eta = eta,
+                            seed=1234)
+
+
 #%%
 ## Time to run the code....
 # Specify the parameters here
@@ -88,28 +82,19 @@ delta_frac = 1
 n_datasets = 50
 
 #%%
-beta_type = 1
-snr_high_list = [2, 3, 4, 5, 6, 7, 8]
-for snr in snr_high_list:
-    bulk_sim.bulk_sim_normalised_improved(n, p, q, beta_type, K0, snr, corr,
-                        t_init = t_init,
-                        delta_frac=delta_frac,
-                        n_datasets=n_datasets, 
-                        nlam=nlam,
-                        eta = eta,
-                        seed=1234)
+beta_list = [2]
+for beta_type in beta_list:
+    snr_high_list = [2,3]
+    for snr in snr_high_list:
+        bulk_sim.bulk_simV2(n, p, q, beta_type, K0, snr, corr,
+                            t_init = t_init,
+                            delta_frac=delta_frac,
+                            n_datasets=n_datasets, 
+                            nlam=nlam,
+                            eta = eta,
+                            seed=1234)
+        time.sleep(150)
 
-#%% 
-beta_type = 2
-snr_high_list = [2, 3, 4, 5, 6, 7, 8]
-for snr in snr_high_list:
-    bulk_sim.bulk_sim_normalised_improved(n, p, q, beta_type, K0, snr, corr,
-                        t_init = t_init,
-                        delta_frac=delta_frac,
-                        n_datasets=n_datasets, 
-                        nlam=nlam,
-                        eta = eta,
-                        seed=1234)
 
 
 # %%

@@ -52,7 +52,6 @@ def adam_w(X, y, beta, w0, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon =
 				diff_gradt = np.linalg.norm((gradt_new - gradt_curr),2)
 				if (diff_gradt < tol):
 					stop = True
-		
 		# Iterate through counter
 		i = i + 1
 	
@@ -61,7 +60,7 @@ def adam_w(X, y, beta, w0, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon =
 	
 	return w_new, t_new, converge, i+1
 
-def control_funV2(X, y,  lam, t_init,
+def control_funV2(X, y, lam, t_init,
 		delta_frac = 1,
 		CG = True,
 	 
@@ -76,13 +75,13 @@ def control_funV2(X, y,  lam, t_init,
 		## Parameters for Conjugate Gradient method
 		cg_maxiter = None,
 		cg_tol = 1e-5,
-        
-        # Parameters for Adam 
-        adam_maxiter = None,
+		
+		# Parameters for Adam 
+		adam_maxiter = None,
 		adam_tol = 1e-5,
-        
-        # Parameters for Gradient Descent 
-        maxiter = None,
+		
+		# Parameters for Gradient Descent 
+		maxiter = None,
 		tol = 1e-5):
 	"""
 	Implementation of the ADAM optimizer for combss. 
@@ -100,6 +99,7 @@ def control_funV2(X, y,  lam, t_init,
 	
 	## One time operations
 	delta = delta_frac*n
+
 	Xy = (X.T@y)/n
 	XX = (X.T@X)/n
 	Z = XX.copy()
@@ -146,9 +146,9 @@ def control_funV2(X, y,  lam, t_init,
 		## Compute gradient for the effective terms
 		beta_trun, c, g1, g2 = helpers.beta_grad_cg(t_trun, X, y, XX, Xy, Z, lam, delta, beta_trun[M_trun],  c[M_trun], g1, g2, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
 		w_trun = w[M]
-        
+		
 		w_trun, t_trun, _, _ = adam_w(X, y, beta_trun, w_trun, lam, maxiter = adam_maxiter, tol = adam_tol)
-        
+		
 		w[M] = w_trun
 		t[M] = t_trun
 		
@@ -289,7 +289,6 @@ def combss_dynamicV2(X, y,
 
 	## Second pass on the dynamic lambda grid
 	stop = False
-	#print('Second pass of lambda grid is running')
 	while not stop:
 		temp = np.array(lam_vs_size)
 		order = np.argsort(temp[:, 1])
@@ -302,21 +301,23 @@ def combss_dynamicV2(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				t_final, model, converge,_ = control_funV2(X, y, lam, t_init = t_init, maxiter = gd_maxiter, tol = gd_tol, cg_maxiter=cg_maxiter, adam_maxiter=adam_maxiter)
+				t_final, model, converge, _ = control_funV2(X, y, lam, t_init = t_init, maxiter = gd_maxiter, tol = gd_tol, cg_maxiter=cg_maxiter, adam_maxiter=adam_maxiter)
 
 				len_model = model.shape[0]
 
 				lam_list.append(lam)
-				# t_list.append(t_final)
-				# beta_list.append(beta)
-				# t_seq_list.append(t_seq)
-				# beta_seq_list.append(beta_seq)
 				model_list.append(model)
-				# converge_list.append(converge)
 				lam_vs_size.append(np.array((lam, len_model)))    
 				count_lam += 1
 
-		stop = True
+			if count_lam > nlam:
+				stop = True
+				break
+
+	temp = np.array(lam_vs_size)
+	order = np.argsort(temp[:, 1])
+	model_list = [model_list[i] for i in order]
+	lam_list = [lam_list[i] for i in order]
 	
 	return  (model_list, lam_list)
 
@@ -332,8 +333,8 @@ def combssV2(X_train, y_train, X_test, y_test,
 			gd_tol=1e-5,         # Tolerance of GD
 			cg_maxiter=None, # Maximum number of iterations allowed by CG
 			cg_tol=1e-5,     # Tolerance of CG
-            adam_maxiter=None, # Maximum number of iterations allowed by Adam
-            adam_tol = 10e-5): # Tolerance of Adam  
+			adam_maxiter=None, # Maximum number of iterations allowed by Adam
+			adam_tol = 10e-5): # Tolerance of Adam  
 	""" 
 	COMBSSV1 with SubsetMapV1
 	

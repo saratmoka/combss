@@ -575,6 +575,7 @@ def combss_dynamicV0(X, y,
 	## First pass on the dynamic lambda grid
 	stop = False
 	while not stop:
+
 		t_final, model, converge, _ = ADAM_combss(X, y, lam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter=gd_maxiter,gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
 
 		len_model = model.shape[0]
@@ -590,6 +591,7 @@ def combss_dynamicV0(X, y,
 		
 
 
+	## Second pass on the dynamic lambda grid
 	## Second pass on the dynamic lambda grid
 	stop = False
 	while not stop:
@@ -613,7 +615,14 @@ def combss_dynamicV0(X, y,
 				lam_vs_size.append(np.array((lam, len_model)))    
 				count_lam += 1
 
-		stop = True
+			if count_lam > nlam:
+				stop = True
+				break
+
+	temp = np.array(lam_vs_size)
+	order = np.argsort(temp[:, 1])
+	model_list = [model_list[i] for i in order]
+	lam_list = [lam_list[i] for i in order]
 	
 	return  (model_list, lam_list)
 
@@ -731,7 +740,8 @@ def combssV0(X_train, y_train, X_test, y_test,
 
 	# Data Normalisation
 	column_norms = np.linalg.norm(X_train, axis=0)
-	X_train = X_train / column_norms
+	print(column_norms)
+	X_train_hat = X_train / column_norms
 
 	
 	# Call COMBSS_dynamic with the Adam optimiser
@@ -745,7 +755,7 @@ def combssV0(X_train, y_train, X_test, y_test,
 		q = min(n, p)
 	
 	tic = time.process_time()
-	(model_list, lam_list) = combss_dynamicV0(X_train, y_train, q = q, nlam = nlam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter= gd_maxiter, gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
+	(model_list, lam_list) = combss_dynamicV0(X_train_hat, y_train, q = q, nlam = nlam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter= gd_maxiter, gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
 	toc = time.process_time()
 	
 	"""
@@ -754,9 +764,6 @@ def combssV0(X_train, y_train, X_test, y_test,
 	nlam = len(lam_list)
 	mse_list = [] 
 	beta_list = []
-
-	X_train = X_train*column_norms
-
 	
 	for i in range(nlam):
 		model_final = model_list[i]

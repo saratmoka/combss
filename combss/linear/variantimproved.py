@@ -346,6 +346,7 @@ def ADAM_combss(X, y,  lam, t_init,
     """
     
     (n, p) = X.shape
+    delta_frac = delta_frac*n
     
     ## One time operation
     Xy = (X.T@y)/n
@@ -613,7 +614,14 @@ def combss_dynamicV0(X, y,
                 lam_vs_size.append(np.array((lam, len_model)))    
                 count_lam += 1
 
-        stop = True
+            if count_lam > nlam:
+                stop = True
+                break
+
+    temp = np.array(lam_vs_size)
+    order = np.argsort(temp[:, 1])
+    model_list = [model_list[i] for i in order]
+    lam_list = [lam_list[i] for i in order]
     
     return  (model_list, lam_list)
 
@@ -777,11 +785,3 @@ def combssV0(X_train, y_train, X_test, y_test,
     time_taken = toc - tic
 
     return model_opt, mse_opt, beta_opt, lam_opt, time_taken
-
-
-
-
-
-
-
-

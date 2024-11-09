@@ -53,7 +53,7 @@ for snr in snr_list:
     version0.update({"Time": avg_TimeV0})
 
 
-    df1 = pd.read_csv("./finalResults/COMBSSV0-normalised-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
+    df1 = pd.read_csv("./finalResults/COMBSS-normalised-case-%s-n-%d-p-%s-q-%s-corr-%s-ninit-%s-snr-%s-ndatasets-%s-nlam-%s-eta-%s.csv" %(beta_type, n, p, q, corr, n_tinit, snr,  n_datasets, nlam, eta))
 
     version1 = {}
     avg_MSEV1 = df1['MSE'].mean()
@@ -232,6 +232,7 @@ plt.ylabel('MSE')
 plt.title(f'COMBSS Variants Mean Squared Error, Beta Case {beta_type}, {dimension} Dimension')
 plt.legend(handles = [combssO, combssN, combssI, combssIN])
 ax.set_ylim(bottom=0)
+plt.figure(dpi=1200)
 plt.show()
 
 #%%
@@ -247,6 +248,7 @@ plt.ylabel('Prediction Error')
 plt.title(f'COMBSS Variants Prediction Error, Beta Case {beta_type}, {dimension} Dimension')
 plt.legend(handles = [combssO, combssN, combssI, combssIN])
 ax.set_ylim(bottom=0)
+plt.figure(dpi=1200)
 plt.show()
 
 #%%
@@ -262,6 +264,7 @@ plt.ylabel('MCC')
 plt.title(f'COMBSS Variants MCC, Beta Case {beta_type}, {dimension} Dimension')
 plt.legend(handles = [combssO, combssN, combssI, combssIN])
 ax.set_ylim(bottom=0)
+plt.figure(dpi=1200)
 plt.show()
 
 #%%
@@ -278,6 +281,7 @@ plt.title(f'COMBSS Variants Accuracy, Beta Case {beta_type}, {dimension} Dimensi
 plt.legend(handles = [combssO, combssN, combssI, combssIN])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
+plt.figure(dpi=1200)
 plt.show()
 
 #%%
@@ -294,6 +298,7 @@ plt.title(f'COMBSS Variants F1 Score, Beta Case {beta_type}, {dimension} Dimensi
 plt.legend(handles = [combssO, combssN, combssI, combssIN])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
+plt.figure(dpi=1200)
 plt.show()
 
 #%%
@@ -310,6 +315,7 @@ plt.title(f'COMBSS Variants Sensitivity, Beta Case {beta_type}, {dimension} Dime
 plt.legend(handles = [combssO, combssN, combssI, combssIN])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
+plt.figure(dpi=1200)
 plt.show()
 
 #%%
@@ -326,6 +332,7 @@ plt.title(f'COMBSS Variants Specificity, Beta Case {beta_type}, {dimension} Dime
 plt.legend(handles = [combssO, combssN, combssI, combssIN])
 ax.set_ylim(bottom=0)
 ax.set_ylim(top=1)
+plt.figure(dpi=1200)
 plt.show()
 
 # %%
@@ -341,5 +348,6 @@ plt.ylabel('Average Time per Dataset (seconds)')
 plt.title(f'COMBSS Variants Average Time, Beta Case {beta_type}, {dimension} Dimension')
 plt.legend(handles = [combssO, combssN, combssI, combssIN])
 ax.set_ylim(bottom=0)
+plt.figure(dpi=1200)
 plt.show()
 # %%

@@ -5,12 +5,11 @@ import time
 import helpers
 
 def ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5):
-	# To compensate for data types fed into Adam, otherwise the output will be of incorrect dimension.
-	#y = np.reshape(y, (-1,1))
 
 	# Initialising data-related variables
 	(n, p) = X.shape 
 	delta = n
+
 	
 	# Initialising Adam-related variables
 	i = 0
@@ -169,7 +168,6 @@ def combss_dynamicV1(X, y,
 
 	## Second pass on the dynamic lambda grid
 	stop = False
-	#print('Second pass of lambda grid is running')
 	while not stop:
 		temp = np.array(lam_vs_size)
 		order = np.argsort(temp[:, 1])
@@ -182,21 +180,23 @@ def combss_dynamicV1(X, y,
 
 				lam = (lam_vs_size_ordered[i][0] + lam_vs_size_ordered[i+1][0])/2
 
-				t_final, model, converge,_ ,_ ,_= ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
+				t_final, model, converge, _, _, _ = ADAM_combssV1(X, y, lam, gam1 = 0.9, gam2 = 0.999, alpha = 0.1, epsilon = 10e-8, maxiter = 1e3, tol = 1e-8, tau = 0.5)
 
 				len_model = model.shape[0]
 
 				lam_list.append(lam)
-				# t_list.append(t_final)
-				# beta_list.append(beta)
-				# t_seq_list.append(t_seq)
-				# beta_seq_list.append(beta_seq)
 				model_list.append(model)
-				# converge_list.append(converge)
 				lam_vs_size.append(np.array((lam, len_model)))    
 				count_lam += 1
 
-		stop = True
+			if count_lam > nlam:
+				stop = True
+				break
+
+	temp = np.array(lam_vs_size)
+	order = np.argsort(temp[:, 1])
+	model_list = [model_list[i] for i in order]
+	lam_list = [lam_list[i] for i in order]
 	
 	return  (model_list, lam_list)
 
@@ -235,9 +235,7 @@ def combssV1(X_train, y_train, X_test, y_test,
 	tic = time.process_time()
 	(model_list, lam_list) = combss_dynamicV1(X_train, y_train, q = q, nlam = nlam, t_init=t_init, tau=tau, delta_frac=delta_frac, eta=eta, epoch=epoch, gd_maxiter= gd_maxiter, gd_tol=gd_tol, cg_maxiter=cg_maxiter, cg_tol=cg_tol)
 	toc = time.process_time()
-	#print('Dynamic combss is completed')
-
-	# t_arr = np.array(t_list)
+	
 	
 	"""
 	Computing the MSE on the test data
@@ -265,15 +263,7 @@ def combssV1(X_train, y_train, X_test, y_test,
 		beta_pred = np.zeros(p)
 		beta_pred[model_final] = beta_hat
 		beta_list.append(beta_pred)
-		# elif len_s >= n: 
-		#     mse = 2*np.square(y_test).mean()
-		#     beta_list.append(beta_hat)
-		# else:
-		#     mse = np.square(y_test).mean()
 
-	#print(pred_err)
-	## Convert to numpy array
-	# mse_arr = np.array(mse_list)  
 	ind_opt = np.argmin(mse_list)
 	lam_opt = lam_list[ind_opt]
 	model_opt = model_list[ind_opt]
