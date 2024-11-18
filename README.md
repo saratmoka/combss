@@ -1,6 +1,8 @@
 # COMBSS
 This is the package for COMBSS, a novel continuous optimisation method toward best subset selection, developed from the paper Moka et al. (2024).
 
+For a more detaled overview of COMBSS, refer to https://link.springer.com/article/10.1007/s11222-024-10387-8.
+
 ## Dependencies
 
 This package relies on the following libraries:
@@ -143,7 +145,7 @@ optimiser.subset_list
 ```
 One can observe that a model of size q = 8 was recovered from the training data after approximately 2.59 seconds. The recovered model with elements of indices in the optimiser.subset array achieved a mean squared error of approximately 19.94 on the test data, after a series of up to nlam = 50 values of λ were explored in the dynamic grid search, starting with an null model explored when COMBSS was initialised with λ approximately equal to 65.548. 
 
-One can additionally observe the following output after performing the fitting in the modified code example 2. In this setting, q is instead taken to equal 10, exploring 50 values of λ with feature scaling, a more stringent thresholding value of tau = 0.9, and taking the fraction delta/n for the objective function equal to 20. All other arguments take their default values.
+One can additionally observe the following output after performing the fitting in the modified code example 2. In this setting, q is instead taken to equal 10, exploring 50 values of λ with feature scaling, a more stringent thresholding value of 𝜏 = 0.9, and taking the fraction delta/n for the objective function equal to 20. All other arguments take their default values.
 
 ### Example 2
 
@@ -188,5 +190,5 @@ optimiser.subset_list
 # array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10])]
 ```
 
-One can observe that the changes to tau, delta_frac and nlam result in different values of lambda being explored, with a different navigation of subsets as the threshold parameter tau is increased in the subset mapping process, and the landscape of the objective function is changed. Consequently, an additional predictor from the true model is recovered at the expense of a larger computational cost.
+One can observe that the changes to tau, delta_frac and nlam result in different values of lambda being explored, with a different navigation of subsets as the threshold parameter 𝜏 is increased in the subset mapping process, and the landscape of the objective function is changed. Consequently, an additional predictor from the true model is recovered at the expense of a larger computational cost.
 
