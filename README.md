@@ -1,4 +1,4 @@
-# combss
+# COMBSS
 This is the package for COMBSS, a novel continuous optimisation method toward best subset selection, developed from the paper Moka et al. (2024)
 
 ## Dependencies
