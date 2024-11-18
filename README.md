@@ -47,7 +47,7 @@ To use COMBSS for best subset selection, call the `fit` method within the `model
 - **nlam**: Number of \(λ\) values in the dynamic grid. Default is 50.
 - **scaling**: Boolean to enable feature scaling. Default is `False`.
 
-Example usage:
+Example usage 1:
 
 ```python
 # A sample usage of the commonly used arguments
@@ -68,7 +68,7 @@ Other arguments include:
 - **cg_maxiter**: Maximum iterations for the conjugate gradient algorithm.
 - **cg_tol**: Tolerance for the conjugate gradient algorithm.
 
-Modified usage example:
+Modified usage example 2:
 
 ```python
 # A modified usage of the fit method
@@ -102,17 +102,91 @@ optimiser.mse
 ### Example 1
 
 ```python
-optimiser.fit(X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test, q=8, nlam=20, scaling=True)
+# A sample usage of the commonly used arguments
+optimiser.fit(X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test, q = 8, nlam = 20, scaling=True)
 
-print(optimiser.subset)
-# Output: [0, 1, 2, 3, 4, 6, 7, 8]
+optimiser.subset
+# array([0, 1, 2, 3, 4, 6, 7, 8])
+
+optimiser.mse
+# 19.940929997277212
+
+optimiser.coef_
+# array([ 0.85215,  1.50009,  0.39557,  2.3919,  -0.56994,
+#         0.     ,  2.6758 ,  0.72726,  1.70696,  0.        ,
+#         0.     ,  0.     ,  0.     ,  0.     ,  0.        ,
+#         0.     ,  0.     ,  0.     ,  0.     ,  0.        ])
+
+optimiser.lambda_
+# 0.6401161339265333
+
+optimiser.run_time
+# 2.591932
+
+optimiser.lambda_list
+# [65.54789211407702,
+# 32.77394605703851,
+# 16.386973028519254,
+# .
+# .
+# 0.5120929071412267,
+# 0.6401161339265333]
+
+optimiser.subset_list
+# [array([], dtype=int64),
+# array([], dtype=int64),
+# array([], dtype=int64),
+# .
+# .
+# array([0, 1, 2, 3, 4, 6, 7, 8]),
+# array([0, 1, 2, 3, 4, 6, 7, 8])]
 ```
+One can observe that a model of size q = 8 was recovered from the training data after approximately 2.59 seconds. The recovered model with elements of indices in the optimiser.subset array achieved a mean squared error of approximately 19.94 on the test data, after a series of up to nlam = 50 values of \(lambda\) were explored in the dynamic grid search, starting with an null model explored when COMBSS was initialised with \(λ \approx 65.548 \). 
+
+One can additionally observe the following output after performing the fitting in the example code from Section~\ref{CH7: OAF}. In this setting, {\sf q} is instead taken to equal 10, exploring 50 values of \(λ\) with feature scaling, a more stringent thresholding value of \(tau = 0.9\), and taking the fraction delta/n for the objective function equal to 20. All other arguments take their default values.
 
 ### Example 2
 
 ```python
-optimiser.fit(X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test, q=10, nlam=50, scaling=True, tau=0.9, delta_frac=20)
+# A sample usage of additional arguments
+combssOptimiser.fit(X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test, q = 10, nlam = 50, scaling=True, tau = 0.9, delta_frac = 20)
 
-print(optimiser.subset)
-# Output: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+optimiser.subset
+# array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+optimiser.mse
+# 19.50638319557191
+
+optimiser.coef_
+# array([ 0.76678,  1.51074,  0.49312,  2.45588,  -0.69150,
+#         0.13782,  2.43072,  0.89641,  0.88130,  1.13421 ,  
+#         0.     ,  0.     ,  0.     ,  0.     ,  0.        ,
+#         0.     ,  0.     ,  0.     ,  0.     ,  0.        ])
+
+optimiser.lambda_
+# 0.022003992103724584
+
+optimiser.run_time
+# 5.400080000000001
+
+optimiser.lambda_list
+# [65.54789211407702,
+# 32.77394605703851,
+# 16.386973028519254,
+# .
+# .
+# 0.020003629185204166,
+# 0.016002903348163334]
+
+optimiser.subset_list
+# [array([], dtype=int64),
+# array([], dtype=int64),
+# array([], dtype=int64),
+# .
+# .
+# array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10]),
+# array([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10])]
+```
+
+One can observe that the changes to tau, deklta_frac and nlam result in different values of \(lambda\) being explored, with a different navigation of subsets as the threshold parameter tau is increased in the subset mapping process, and the landscape of the objective function is changed. Consequently, an additional predictor from the true model is recovered at the expense of a larger computational cost.
 
