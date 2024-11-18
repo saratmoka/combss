@@ -7,7 +7,7 @@ subset selection via continuous optimisation, as proposed in the original paper 
 All optimisation logic is handled in the private _optimisation.py module.
 """
 
-import combsstest.optimisation as optimisation
+import combss.optimisation as optimisation
 
 
 class model:
