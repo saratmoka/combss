@@ -1,7 +1,7 @@
 # COMBSS
 This is the package for COMBSS, a novel continuous optimisation method toward best subset selection, developed from the paper Moka et al. (2024).
 
-For a more detaled overview of COMBSS, refer to https://link.springer.com/article/10.1007/s11222-024-10387-8.
+For a more detailed overview of COMBSS, refer to https://link.springer.com/article/10.1007/s11222-024-10387-8.
 
 ## Dependencies
 
