@@ -142,7 +142,7 @@ def f_grad_cg(t, X, y, Xy, lam, delta_frac, gamma,  upsilon, g1, g2,
 
 	cg_maxiter : int
 		The maximum number of iterations for the conjugate gradient algortihm.
-		Default value = None.
+		Default value = min(n, p).
 
 	cg_tol : float
 		The acceptable tolerance used for the termination condition in the conjugate gradient 
@@ -322,7 +322,7 @@ def adam(X, y,  lam, t_init,
 
 	cg_maxiter : int
 		The maximum number of iterations for the conjugate gradient algortihm.
-		Default value = None.
+		Default value = n.
 
 	cg_tol : float
 		The acceptable tolerance used for the termination condition in the conjugate gradient 
@@ -349,6 +349,8 @@ def adam(X, y,  lam, t_init,
 	"""
 	
 	(n, p) = X.shape
+	if cg_maxiter == None:
+		cg_maxiter = n
 	
 	## One time operation
 	Xy = (X.T@y)/n
@@ -477,7 +479,7 @@ def dynamic_grid(X, y, t_init,
 		
 	q : int
 		The maximum subset size of interest. If q is not provided, it is taken to be n.
-		Default value = None.
+		Default value = min(n, p).
 
 	nlam : float
 		The number of lambdas explored in the dynamic grid. 
@@ -485,7 +487,7 @@ def dynamic_grid(X, y, t_init,
 
 	t_init : array-like of floats of shape (p, )
 		The initial values of t passed into Adam.
-		Default value = [].
+		Default value = 0.5*np.ones(p).
 
 	tau : float
 		The cutoff value for t that signifies its selection of covariates. 
@@ -522,7 +524,7 @@ def dynamic_grid(X, y, t_init,
 
 	cg_maxiter : int
 		The maximum number of iterations for the conjugate gradient algortihm.
-		Default value = None.
+		Default value = n.
 
 	cg_tol : float
 		The acceptable tolerance used for the termination condition in the conjugate gradient 
@@ -651,23 +653,23 @@ def bss(X_train, y_train, X_test, y_test,
 		
 	Parameters
 	----------
-	X_train : array-like of shape (n_train, n_covariates)
+	X_train : array-like of shape (n_train, p)
 		The design matrix used for training, where `n_train` is the number of samples 
-		in the training data and `n_covariates` is the number of covariates measured in each sample.
+		in the training data and `p` is the number of covariates measured in each sample.
 
 	y_train : array-like of shape (n_train)
 		The response data used for training, where `n_train` is the number of samples in the training data.
 
-	X_test : array-like of shape (n_test, n_covariates)
+	X_test : array-like of shape (n_test, p)
 		The design matrix used for testing, where `n_test` is the number of samples 
-		in the testing data and `n_covariates` is the number of covariates measured in each sample.
+		in the testing data and `p` is the number of covariates measured in each sample.
 
 	y_test : array-like of shape (n_test)
-		The response data used for testing, where `n_samples` is the number of samples in the testing data.    
+		The response data used for testing, where `n_test` is the number of samples in the testing data.    
 
 	q : int
 		The maximum subset size of interest. If q is not provided, it is taken to be n.
-		Default value = None.
+		Default value = min(n_train, p).
 
 	nlam : int
 		The number of lambdas explored in the dynamic grid.
@@ -675,7 +677,7 @@ def bss(X_train, y_train, X_test, y_test,
 
 	t_init : array-like of integers
 		The initial value of t passed into Adam optimizer.
-		Default value = [].
+		Default value = 0.5*np.ones(p).
 
 	tau : float
 		The cutoff value for t that signifies its selection of covariates. 
@@ -708,7 +710,7 @@ def bss(X_train, y_train, X_test, y_test,
 
 	cg_maxiter : int
 		The maximum number of iterations for the conjugate gradient algortihm.
-		Default value = n.
+		Default value = n_train.
 
 	cg_tol : float
 		The acceptable tolerance used for the termination condition in the conjugate gradient 
@@ -807,4 +809,4 @@ def bss(X_train, y_train, X_test, y_test,
 		"lambda_list" : lam_list
 		}
 
-	return result #subset_opt, mse_opt, beta_opt, lam_opt, time_taken
+	return result
