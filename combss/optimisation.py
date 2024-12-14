@@ -599,8 +599,8 @@ def dynamic_grid(X, y, t_init,
 	while not stop:
 
 		temp = np.array(lam_vs_size)
-		order = np.argsort(temp[:, 1])
-		lam_vs_size_ordered = np.flip(temp[order], axis=0)        
+		order = np.argsort(temp[:, 0])
+		lam_vs_size_ordered = temp[order]        
 
 		## Find the next index
 		for i in range(order.shape[0]-1):
