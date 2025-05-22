@@ -1,5 +1,5 @@
 """
-combss._optimisation.py
+combss._opt_lm.py
 
 This private module contains the optimisation-specific functions for combss.linear.py, 
 ensuring seperable logic for future development.

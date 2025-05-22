@@ -7,7 +7,7 @@ subset selection via continuous optimisation, as proposed in the original paper 
 All optimisation logic is handled in the private _optimisation.py module.
 """
 
-import combss.optimisation as optimisation
+import combss.opt_lm as olm
 
 
 class model:
@@ -159,7 +159,7 @@ class model:
 
         """
         print("Fitting the model ...")
-        result = optimisation.bss(X_train, y_train, X_test, y_test, t_init=t_init, q = q, scaling=scaling, tau=tau, delta_frac=delta_frac, nlam = nlam, eta=eta, patience=patience, gd_maxiter=gd_maxiter, gd_tol=gd_tol, cg_maxiter = cg_maxiter, cg_tol=cg_tol)
+        result = olm.bss(X_train, y_train, X_test, y_test, t_init=t_init, q = q, scaling=scaling, tau=tau, delta_frac=delta_frac, nlam = nlam, eta=eta, patience=patience, gd_maxiter=gd_maxiter, gd_tol=gd_tol, cg_maxiter = cg_maxiter, cg_tol=cg_tol)
         print("Fitting is complete")
         self.subset = result["subset"]
         self.mse = result["mse"]
