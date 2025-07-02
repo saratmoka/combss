@@ -13,6 +13,7 @@ Functions:
 - dynamic_grid(): Conducts a search over a dynamic grid of lambda values.
 - bss(): Manages the dynamic grid search, and conducts model evaluation.
 
+
 """
 import numpy as np
 from numpy.linalg import pinv, norm
