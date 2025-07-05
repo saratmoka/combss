@@ -4,15 +4,15 @@ combss.linear.py
 This public module contains a user-friendly interface for using the model class to conduct best 
 subset selection via continuous optimisation, as proposed in the original paper Moka et al. (2024).
 
-All optimisation logic is handled in the private _optimisation.py module.
+All optimisation logic is handled in the private _opt_lm.py module.
 """
 
-import combss.opt_lm as olm
+import combss._opt_lm as olm
 
 
 class model:
     """
-        Model is a class implementation that enables users to run COMBSS, a novel continuous optimisation
+        Model is a class implementation that enables users to run COMBSS, a continuous optimisation
         method toward best subset selection in Python. Model contains the following method:
         - fit
         
@@ -38,11 +38,11 @@ class model:
         self.subset_list = None
         self.lambda_list = None
         
-    def fit(self, X_train, y_train, X_test, y_test, 
+    def fit(self, X_train, y_train, X_val, y_val, # Training and validation datasets
                 q = None,           # maximum subset size
                 nlam = 50,          # number of values in the lambda grid
                 t_init= [],         # Initial t vector
-                scaling=True,      # If True, the training data is scaled 
+                scaling=True,       # If True, the training data is scaled 
                 tau=0.5,            # tau parameter
                 delta_frac=1,       # delta_frac = n/delta
                 eta=0.001,          # Truncation parameter
@@ -66,12 +66,12 @@ class model:
         y_train : array-like of shape (n_train)
             The response data used for training, where `n_train` is the number of samples in the training data.
 
-        X_test : array-like of shape (n_test, n_covariates)
-            The design matrix used for testing, where `n_test` is the number of samples 
-            in the testing data and `n_covariates` is the number of covariates measured in each sample.
-
-        y_test : array-like of shape (n_test)
-            The response data used for testing, where `n_samples` is the number of samples in the testing data.    
+        X_val : array-like of shape (n_val, p)
+            The design matrix used for validation to best possible model from the set of models obtained over the dynamic grid of lambda values, 
+            where `n_val` is the number of samples in the val data and `p` is the number of covariates measured in each sample.
+    
+        y_val : array-like of shape (n_val)
+            The response data used for validation, where `n_val` is the number of samples in the validation data.    
 
         q : int
             The maximum subset size of interest. If q is not provided, it is taken to be the lesser value between 
@@ -84,7 +84,7 @@ class model:
 
         t_init : array-like of floats
             The initial value of t passed into Adam optimiser.
-            Default value = [].
+            Default value = [0.5, 0.5., ....., 0.5] (i.e, center of the hyper-cube [0, 1]^n_covariates).
 
         scaling : bool
             Determines whether or not feature scaling is applied for optimisation.
@@ -121,7 +121,7 @@ class model:
 
         cg_maxiter : int
             The maximum number of iterations for the conjugate gradient algortihm.
-            Default value = None.
+            Default value = n_train.
 
         cg_tol : float
             The acceptable tolerance used for the termination condition in the conjugate gradient 
@@ -140,7 +140,7 @@ class model:
             from all the subsets selected by COMBSS over the dynamic grid of lambdas, 
 
         mse : float
-            The mean squared error on the test data corresponds to the subset_opt.
+            The mean squared error on the validation data corresponds to the subset_opt.
 
         coef_ : array-like of floats  
             Represents estimates of coefficients for linear regression for the subset_opt.
@@ -148,7 +148,7 @@ class model:
         lambda_ : float
             The value of lambda corresponds to the subset_opt.
 
-        time : float
+        run_time : float
             The time taken to execute COMBSS on the dynamic grid.
         
         lambda_list : list 
@@ -159,7 +159,19 @@ class model:
 
         """
         print("Fitting the model ...")
-        result = olm.bss(X_train, y_train, X_test, y_test, t_init=t_init, q = q, scaling=scaling, tau=tau, delta_frac=delta_frac, nlam = nlam, eta=eta, patience=patience, gd_maxiter=gd_maxiter, gd_tol=gd_tol, cg_maxiter = cg_maxiter, cg_tol=cg_tol)
+        result = olm.bss(X_train, y_train, X_val, y_val, 
+                         t_init=t_init, 
+                         q = q, 
+                         scaling=scaling, 
+                         tau=tau, 
+                         delta_frac=delta_frac, 
+                         nlam = nlam, 
+                         eta=eta, 
+                         patience=patience, 
+                         gd_maxiter=gd_maxiter, 
+                         gd_tol=gd_tol, 
+                         cg_maxiter = cg_maxiter, 
+                         cg_tol=cg_tol)
         print("Fitting is complete")
         self.subset = result["subset"]
         self.mse = result["mse"]

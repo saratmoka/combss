@@ -4,8 +4,8 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "combss"
-version = "1.0.3"
-description = "A package implementation of COMBSS, a novel continuous optimisation method toward best subset selection"
+version = "1.1.0"
+description = "A package implementation of COMBSS, a continuous optimisation method toward best subset selection"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 authors = [
@@ -23,6 +23,5 @@ classifiers = [
 
 dependencies = [
     "numpy>=1.21.0",
-    "scipy>=1.7.0",
-    "scikit-learn>=1.0.0"
+    "scipy>=1.7.0"
 ]

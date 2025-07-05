@@ -1,5 +1,5 @@
 """
-combss._metrics.py
+combss.metrics.py
 
 This private module contains logic for computing performance metrics for variable selection.
 Metrics computed:
@@ -13,8 +13,28 @@ Metrics computed:
 """
 
 import numpy as np
-from sklearn import metrics
 
+def binary_confusion_matrix(y_true, y_pred):
+    """
+    Compute confusion matrix for binary classification.
+    
+    Args:
+        y_true (np.ndarray): Ground truth (0 or 1).
+        y_pred (np.ndarray): Predicted labels (0 or 1).
+    
+    Returns:
+        np.ndarray: 2x2 confusion matrix [[TN, FP], [FN, TP]].
+    """
+    y_true = np.asarray(y_true).ravel()
+    y_pred = np.asarray(y_pred).ravel()
+    
+    TP = np.sum((y_true == 1) & (y_pred == 1))
+    TN = np.sum((y_true == 0) & (y_pred == 0))
+    FP = np.sum((y_true == 0) & (y_pred == 1))
+    FN = np.sum((y_true == 1) & (y_pred == 0))
+    
+    return np.array([[TN, FP],
+                    [FN, TP]])
 
 
 def performance_metrics(data_X, beta_true, beta_pred):
@@ -68,9 +88,9 @@ def performance_metrics(data_X, beta_true, beta_pred):
         includes a true predictor in it's predicted model, calculated as a quantity between 0 and 1.
     """
   
-    s_true = [beta_true != 0][0]
-    s_pred = [beta_pred != 0][0]
-    c_matrix = metrics.confusion_matrix(s_true, s_pred)
+    s_true = [np.array(beta_true) != 0][0]
+    s_pred = [np.array(beta_pred) != 0][0]
+    c_matrix = binary_confusion_matrix(s_true, s_pred)
     
     TN = c_matrix[0, 0]
     FN = c_matrix[1, 0]
