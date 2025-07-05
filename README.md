@@ -22,7 +22,6 @@ Moka, Liquet, Zhu & Muller (2024)
 ## Key Features
 - 🎯 Continuous relaxation of discrete subset selection
 - ⚡  Scalable optimization for high-dimensional data
-- 🔌 Seamless integration with NumPy and SciPy
 
 ## Intercept Handling
 
