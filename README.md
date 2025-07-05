@@ -106,8 +106,6 @@ model.fit(
 # Results analysis
 print("\nTrue non-zero coefficients:", np.where(true_coef != 0)[0])
 print("Estimated subset:", model.subset)
-print("\nTrue coefficients (first 10):", true_coef[:10])
-print("Estimated coefficients (first 10):", model.coef_[:10])
 print("\nValidation MSE:", model.mse)
 ```
 
