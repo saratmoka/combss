@@ -14,7 +14,7 @@ Moka, Liquet, Zhu & Muller (2024)
 
 ## Key Features
 - 🎯 Continuous relaxation of discrete subset selection
-- ⚡ Scalable optimization for high-dimensional data
+- ⚡  Scalable optimization for high-dimensional data
 - 🔌 Seamless integration with NumPy and SciPy
 
 ## Installation
@@ -25,25 +25,86 @@ pip install combss
 
 ## Quick Start
 
+A simple example:
+
 ```python
 import combss
 from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split
 
 # Generate sample data
-X, y = make_regression(n_samples=100, n_features=50, noise=0.1)
+X, y = make_regression(n_samples=1000, n_features=50, noise=0.1, random_state=42)
+
+# Split into training and validation sets (60-40 split)
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.4, random_state=42)
+
+# Initialize and fit model with validation data
+model = combss.linear.model()
+model.fit(
+    X_train=X_train, 
+    y_train=y_train,
+    X_val=X_val,      # Validation features
+    y_val=y_val,      # Validation targets
+    q=10,             # Maximum subset size
+    nlam=50           # Number of λ values
+)
+
+# Results
+print("Best subset indices:", model.subset)
+print("Best coefficients:", model.coef_)
+print("Validation MSE:", model.mse)
+print("Optimal lambda:", model.lambda_)
+print("Computation time (s):", model.run_time)
+```
+
+An example with known true coefficients:
+
+```python
+
+import combss
+import numpy as np
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split
+
+# Configuration
+n_samples = 5000
+n_features = 50
+n_informative = 5  # First 5 features are true signals
+noise_level = 0.1
+
+# Generate data with exactly 5 informative features
+X, y, true_coef = make_regression(
+    n_samples=n_samples,
+    n_features=n_features,
+    n_informative=n_informative,  # Only first 5 features have true effect
+    noise=noise_level,
+    coef=True,  # Return the actual coefficients used
+    random_state=42
+)
+
+# The true coefficients will be non-zero for first 5 features
+print("Number of truly informative features:", sum(true_coef != 0))  # Should be 5
+
+# Split data
+X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.4, random_state=42)
 
 # Initialize and fit model
 model = combss.linear.model()
 model.fit(
-    X_train=X, 
-    y_train=y,
-    q=10,          # Maximum subset size
-    nlam=50        # Number of λ values
+    X_train=X_train, 
+    y_train=y_train,
+    X_val=X_val,
+    y_val=y_val,
+    q=10,
+    nlam=50
 )
 
-# Results
-print("Optimal subset:", model.subset)
-print("Coefficients:", model.coef_)
+# Results analysis
+print("\nTrue non-zero coefficients:", np.where(true_coef != 0)[0])
+print("Estimated subset:", model.subset)
+print("\nTrue coefficients (first 10):", true_coef[:10])
+print("Estimated coefficients (first 10):", model.coef_[:10])
+print("\nValidation MSE:", model.mse)
 ```
 
 ## Documentation
@@ -66,7 +127,7 @@ model.fit(
     t_init=None,       # Initial point for vector t
     eta=0.1,           # Truncation parameter
     patience=5,        # Early stopping rounds
-    gd_maxiter=1000,   # Gradient descent iterations
+    gd_maxiter=1000,   # Maximum number of iterations for the gradient based optimization
     cg_tol=1e-6        # Conjugate gradient tolerance
 )
 ```
@@ -75,11 +136,13 @@ model.fit(
 
 | Attribute     | Description                          |
 |--------------|--------------------------------------|
-| `subset`     | Indices of selected features         |
+| `subset`     | Selected feature indices (0-based)   |
 | `coef_`      | Regression coefficients              |
 | `mse`        | Mean squared error                   |
 | `lambda_`    | Optimal λ value                      |
 | `run_time`   | Execution time (seconds)             |
+| `subset_list`| The list subsets over the grid       |
+| `lambda_list`| The grid of λ values.                |
 
 ## Dependencies
 
