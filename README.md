@@ -118,17 +118,17 @@ print("\nValidation MSE:", model.mse)
 | `q`         | Maximum subset size                  | min(n,p) |
 | `nlam`      | Number of λ values                   | 50      |
 | `scaling`   | Enable feature scaling               | True    |
-| `tau`       | Threshold parameter                  | 0.9     |
-| `delta_frac`| δ/n in objective function           | 20      |
+| `tau`       | Threshold parameter                  | 0.5     |
+| `delta_frac`| δ/n in objective function           | 1      |
 
 ### Advanced Options
 
 ```python
 model.fit(
     ...,
-    t_init=None,       # Initial point for vector t
-    eta=0.1,           # Truncation parameter
-    patience=5,        # Early stopping rounds
+    t_init=t_init,     # Initial point for vector t
+    eta=0.001,         # Truncation parameter
+    patience=10,       # Early stopping rounds
     gd_maxiter=1000,   # Maximum number of iterations for the gradient based optimization
     cg_tol=1e-6        # Conjugate gradient tolerance
 )
