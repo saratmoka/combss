@@ -1,4 +1,11 @@
-# <img src="./combss_logo.png" alt="COMBSS Logo" width="200"/> Continuous Optimization Method for Best Subset Selection
+<img src="combss_logo.png" alt="COMBSS Logo" width="200" style="
+    border-radius: 6px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.05));
+">
+<!--# <img src="./combss_logo.png" alt="COMBSS Logo" width="150"/> -->
+
+# Continuous Optimization Method for Best Subset Selection
 
 [![PyPI version](https://img.shields.io/pypi/v/combss)](https://pypi.org/project/combss/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/saratmoka/combss/blob/main/LICENSE)
