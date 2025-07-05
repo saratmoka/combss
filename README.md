@@ -143,7 +143,7 @@ model.fit(
 | `mse`        | Mean squared error                   |
 | `lambda_`    | Optimal λ value                      |
 | `run_time`   | Execution time (seconds)             |
-| `subset_list`| The list subsets over the grid       |
+| `subset_list`| The list of subsets over the grid    |
 | `lambda_list`| The grid of λ values.                |
 
 ## Dependencies
