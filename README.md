@@ -17,6 +17,10 @@ Moka, Liquet, Zhu & Muller (2024)
 - ⚡  Scalable optimization for high-dimensional data
 - 🔌 Seamless integration with NumPy and SciPy
 
+## Intercept Handling
+
+The intercept term (if included) is subject to the same selection process as other features.
+
 ## Installation
 
 ```bash
