@@ -3,7 +3,7 @@
     box-shadow: 0 3px 6px rgba(0,0,0,0.1);
     filter: drop-shadow(0 2px 2px rgba(0,0,0,0.05));
 ">
-<!--# <img src="./combss_logo.png" alt="COMBSS Logo" width="150"/> -->
+
 
 # Continuous Optimization Method for Best Subset Selection
 
