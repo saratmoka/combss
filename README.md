@@ -73,21 +73,21 @@ from sklearn.model_selection import train_test_split
 # Configuration
 n_samples = 5000
 n_features = 50
-n_informative = 5  # First 5 features are true signals
+n_informative = 5  # the number of non-zero coefficients
 noise_level = 0.1
 
 # Generate data with exactly 5 informative features
 X, y, true_coef = make_regression(
     n_samples=n_samples,
     n_features=n_features,
-    n_informative=n_informative,  # Only first 5 features have true effect
+    n_informative=n_informative, 
     noise=noise_level,
     coef=True,  # Return the actual coefficients used
     random_state=42
 )
 
 # The true coefficients will be non-zero for first 5 features
-print("Number of truly informative features:", sum(true_coef != 0))  # Should be 5
+print("Number of truly informative features:", sum(true_coef != 0))  
 
 # Split data
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.4, random_state=42)
