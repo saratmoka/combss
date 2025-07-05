@@ -1,6 +1,6 @@
 # COMBSS: Continuous Optimization for Best Subset Selection
 
-<!--[![PyPI version](https://img.shields.io/pypi/v/combss)](https://pypi.org/project/combss/) -->
+[![PyPI version](https://img.shields.io/pypi/v/combss)](https://pypi.org/project/combss/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/saratmoka/combss/blob/main/LICENSE)
 
 Python implementation of a novel continuous optimization method for best subset selection in linear regression.
