@@ -119,15 +119,15 @@ print("\nValidation MSE:", model.mse)
 
 ### Core Parameters
 
-| Parameter    | Description                          | Default |
+| Parameter   | Description                          | Default |
 |-------------|--------------------------------------|---------|
-| `q`         | Maximum subset size                  | min(n,p) |
+| `q`         | Maximum subset size                  | min(n,p)|
 | `nlam`      | Number of λ values                   | 50      |
 | `scaling`   | Enable feature scaling               | True    |
 | `tau`       | Threshold parameter                  | 0.5     |
-| `delta_frac`| δ/n in objective function           | 1      |
+| `delta_frac`| δ/n in objective function            | 1       |
 
-### Advanced Options
+### Other Parameters
 
 ```python
 model.fit(
@@ -136,13 +136,15 @@ model.fit(
     eta=0.001,         # Truncation parameter
     patience=10,       # Early stopping rounds
     gd_maxiter=1000,   # Maximum number of iterations for the gradient based optimization
+    gd_tol=1e-5,       # Tolerance for the gradient based optimization
+    cg_maxiter=1000,   # Maximum number of iterations allowed in the conjugate gradient method
     cg_tol=1e-6        # Conjugate gradient tolerance
 )
 ```
 
 ### Output Attributes
 
-| Attribute     | Description                          |
+| Attribute    | Description                          |
 |--------------|--------------------------------------|
 | `subset`     | Selected feature indices (0-based)   |
 | `coef_`      | Regression coefficients              |
