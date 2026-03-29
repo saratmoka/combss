@@ -41,12 +41,7 @@ class model:
     """
 
     def __init__(self):
-        self.subset = None
-        self.accuracy = None
-        self.coef_ = None
-        self.lam_ridge = None
-        self.subset_list = None
-        self.k_list = None
+        pass
 
     def fit(self, X_train, y_train, X_val=None, y_val=None,
             q=None,
@@ -121,6 +116,9 @@ class model:
         self.lam_ridge = lam_ridge
 
         # If validation data provided, find best k* by accuracy
+        self.subset = None
+        self.accuracy = None
+        self.coef_ = None
         if X_val is not None and y_val is not None:
             acc_list = []
             coef_list = []

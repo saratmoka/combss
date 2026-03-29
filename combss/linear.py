@@ -28,34 +28,40 @@ class model:
     fit(X_train, y_train, ...)
         Run COMBSS to select the best subset of predictors.
 
-    Attributes (available after fitting)
-    ------------------------------------
+    Attributes (after fitting with method='glm')
+    ---------------------------------------------
     subset : ndarray or None
         Indices of the best subset (0-indexed). Requires validation data.
     mse : float or None
         Validation MSE for the best subset. Requires validation data.
     coef_ : ndarray or None
-        Regression coefficients (length p, zeros for unselected features).
+        Regression coefficients (length p, zeros for unselected).
         Requires validation data.
-    lam_ridge : float or None
-        Ridge penalty used (GLM method only; None for original).
     subset_list : list
-        Sequence of subsets. For GLM: one per k = 1, ..., q.
-        For original: one per lambda in the grid. All 0-indexed.
-    k_list : list or None
-        [1, 2, ..., q] for GLM method; None for original.
-    lam_list : list or None
-        Lambda grid values for original method; None for GLM.
+        Subsets for k = 1, ..., q (0-indexed).
+    k_list : list
+        [1, 2, ..., q].
+    lam_ridge : float
+        Ridge penalty used in the inner solver.
+
+    Attributes (after fitting with method='original')
+    --------------------------------------------------
+    subset : ndarray
+        Indices of the best subset (0-indexed).
+    mse : float
+        Validation MSE for the best subset.
+    coef_ : ndarray
+        Regression coefficients (length p, zeros for unselected).
+    subset_list : list
+        Subsets across the lambda grid (0-indexed).
+    lambda_list : list
+        Lambda grid values.
+    lambda_ : float
+        Optimal lambda value.
     """
 
     def __init__(self):
-        self.subset = None
-        self.mse = None
-        self.coef_ = None
-        self.lam_ridge = None
-        self.subset_list = None
-        self.k_list = None
-        self.lam_list = None
+        pass
 
     def fit(self, X_train, y_train, X_val=None, y_val=None,
             q=None,
@@ -170,9 +176,11 @@ class model:
             self.subset_list = [np.array(m) - 1 for m in result.models]
             self.k_list = list(range(1, q + 1))
             self.lam_ridge = lam_ridge
-            self.lam_list = None
 
             # If validation data provided, find best k* by MSE
+            self.subset = None
+            self.mse = None
+            self.coef_ = None
             if X_val is not None and y_val is not None:
                 mse_list = []
                 beta_list = []
@@ -217,9 +225,8 @@ class model:
             self.mse = result["mse"]
             self.coef_ = result["coef"]
             self.subset_list = result["subset_list"]
-            self.lam_list = result["lambda_list"]
-            self.lam_ridge = None
-            self.k_list = None
+            self.lambda_list = result["lambda_list"]
+            self.lambda_ = result["lambda"]
 
         else:
             raise ValueError(f"Unknown method '{method}'. Use 'glm' or 'original'.")
