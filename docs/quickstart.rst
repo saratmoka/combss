@@ -84,14 +84,14 @@ Select the ridge penalty using leave-one-out cross-validation:
    import combss
 
    # Classification
-   best_lam, best_lam_per_k, cv_df = combss.cv.cv_select_lambda(
+   best_lam, best_lam_per_k, cv_df = combss.cv.select_lambda(
        X_train, y_train,
        q=15, C=4,
        model_type='multinomial',
    )
 
    # Linear regression
-   best_lam, best_lam_per_k, cv_df = combss.cv.cv_select_lambda(
+   best_lam, best_lam_per_k, cv_df = combss.cv.select_lambda(
        X_train, y_train,
        q=15,
        model_type='linear',

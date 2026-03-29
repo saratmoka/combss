@@ -143,7 +143,7 @@ def loocv_accuracy(X_sel, y, lambda_refit=0.0):
 # Main CV function
 # ================================================================
 
-def cv_select_lambda(X, y, q, C=None,
+def select_lambda(X, y, q, C=None,
                      lambda_grid=None,
                      Niter=50,
                      alpha=0.01,

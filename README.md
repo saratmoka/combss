@@ -110,14 +110,14 @@ Select the ridge penalty using leave-one-out cross-validation:
 import combss
 
 # Classification
-best_lam, best_lam_per_k, cv_df = combss.cv.cv_select_lambda(
+best_lam, best_lam_per_k, cv_df = combss.cv.select_lambda(
     X_train, y_train,
     q=15, C=4,
     model_type='multinomial',
 )
 
 # Linear regression
-best_lam, best_lam_per_k, cv_df = combss.cv.cv_select_lambda(
+best_lam, best_lam_per_k, cv_df = combss.cv.select_lambda(
     X_train, y_train,
     q=15,
     model_type='linear',
@@ -213,12 +213,12 @@ model.fit(X_train, y_train, q=20, C=4)
 
 Labels `y` must be in {1, ..., C}. All other parameters and attributes are the same as the Frank-Wolfe method in `combss.linear.model`.
 
-### `combss.cv.cv_select_lambda`
+### `combss.cv.select_lambda`
 
 LOOCV-based ridge penalty selection.
 
 ```python
-best_lam, best_lam_per_k, results_df = combss.cv.cv_select_lambda(
+best_lam, best_lam_per_k, results_df = combss.cv.select_lambda(
     X, y, q, C=None, lambda_grid=None, model_type='multinomial', ...
 )
 ```

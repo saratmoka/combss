@@ -60,7 +60,7 @@ Leave-one-out cross-validation for selecting the ridge penalty
 Note: the ``lambda_grid`` in this module contains **ridge penalty** values,
 not the sparsity penalty lambda used in the original COMBSS method.
 
-.. autofunction:: combss.cv.cv_select_lambda
+.. autofunction:: combss.cv.select_lambda
 
 .. autofunction:: combss.cv.loocv_mse_linear
 
