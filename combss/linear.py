@@ -170,10 +170,9 @@ class model:
             if q is None:
                 q = min(n, p)
 
-            # Cap min_k + patience to not exceed p
-            if patience is not None and min_k is not None:
-                if min_k + patience > p:
-                    min_k = max(1, p - patience)
+            # Disable early stopping if min_k + patience exceeds q
+            if patience is not None and min_k + patience > q:
+                patience = None
 
             # Determine whether to use early stopping
             use_early_stop = (patience is not None

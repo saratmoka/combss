@@ -103,9 +103,8 @@ class model:
         if C is None:
             C = len(np.unique(y_train))
 
-        if patience is not None and min_k is not None:
-            if min_k + patience > p:
-                min_k = max(1, p - patience)
+        if patience is not None and min_k + patience > q:
+            patience = None
 
         use_early_stop = (patience is not None
                           and X_val is not None
