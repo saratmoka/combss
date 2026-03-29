@@ -14,6 +14,7 @@ Both methods are accessed through the ``model`` class.
 """
 
 import numpy as np
+from numpy.linalg import pinv
 import combss._opt_lm as olm
 import combss._opt_glm as oglm
 
@@ -29,33 +30,32 @@ class model:
 
     Attributes (available after fitting)
     ------------------------------------
-    subset : ndarray
-        Indices of the selected features.
-    coef_ : ndarray
-        Regression coefficients for the selected subset.
-    mse : float
-        Mean squared error on validation data (method='original') or None (method='glm').
-    lambda_ : float
-        Optimal lambda value (method='original') or the lam parameter used (method='glm').
-    run_time : float
-        Execution time in seconds.
-    models : list
-        List of selected subsets for k = 1, ..., q (method='glm' only).
+    subset : ndarray or None
+        Indices of the best subset (0-indexed). Requires validation data.
+    mse : float or None
+        Validation MSE for the best subset. Requires validation data.
+    coef_ : ndarray or None
+        Regression coefficients (length p, zeros for unselected features).
+        Requires validation data.
+    lam_ridge : float or None
+        Ridge penalty used (GLM method only; None for original).
     subset_list : list
-        List of subsets over the lambda grid (method='original' only).
-    lambda_list : list
-        Grid of lambda values (method='original' only).
+        Sequence of subsets. For GLM: one per k = 1, ..., q.
+        For original: one per lambda in the grid. All 0-indexed.
+    k_list : list or None
+        [1, 2, ..., q] for GLM method; None for original.
+    lam_list : list or None
+        Lambda grid values for original method; None for GLM.
     """
 
     def __init__(self):
         self.subset = None
         self.mse = None
         self.coef_ = None
-        self.lambda_ = None
-        self.run_time = None
+        self.lam_ridge = None
         self.subset_list = None
-        self.lambda_list = None
-        self.models = None
+        self.k_list = None
+        self.lam_list = None
 
     def fit(self, X_train, y_train, X_val=None, y_val=None,
             q=None,
@@ -90,9 +90,11 @@ class model:
         y_train : ndarray (n_train,)
             Training response vector.
         X_val : ndarray (n_val, p), optional
-            Validation design matrix. Required when method='original'.
+            Validation design matrix. Required for method='original'.
+            Optional for method='glm'; when provided, the best subset
+            is selected by validation MSE and coef_ are computed.
         y_val : ndarray (n_val,), optional
-            Validation response. Required when method='original'.
+            Validation response. Required for method='original'.
         q : int, optional
             Maximum subset size. Defaults to min(n, p).
         method : str
@@ -142,7 +144,6 @@ class model:
         cg_tol : float
             Conjugate gradient tolerance (default 1e-5).
         """
-        import time
 
         if method == 'glm':
             n, p = X_train.shape
@@ -152,7 +153,6 @@ class model:
             # Prepend intercept column
             X_fw = np.hstack([np.ones((n, 1)), X_train])
 
-            tic = time.process_time()
             result = oglm.fw(
                 X_fw, y_train,
                 q=q,
@@ -165,17 +165,34 @@ class model:
                 model_type='linear',
                 inner_tol=inner_tol,
             )
-            toc = time.process_time()
 
-            self.models = result.models
-            self.run_time = toc - tic
-            self.lambda_ = lam_ridge
+            # Convert 1-indexed models to 0-indexed subset_list
+            self.subset_list = [np.array(m) - 1 for m in result.models]
+            self.k_list = list(range(1, q + 1))
+            self.lam_ridge = lam_ridge
+            self.lam_list = None
 
-            # Set subset to the last (largest) model
-            if result.models:
-                last_model = result.models[-1]
-                # Convert 1-indexed to 0-indexed
-                self.subset = np.array(last_model) - 1
+            # If validation data provided, find best k* by MSE
+            if X_val is not None and y_val is not None:
+                mse_list = []
+                beta_list = []
+                for sub in self.subset_list:
+                    if len(sub) == 0:
+                        mse_list.append(np.inf)
+                        beta_list.append(np.zeros(p))
+                        continue
+                    X_hat = X_train[:, sub]
+                    beta_hat = pinv(X_hat.T @ X_hat) @ (X_hat.T @ y_train)
+                    y_pred = X_val[:, sub] @ beta_hat
+                    mse_list.append(np.mean((y_val - y_pred) ** 2))
+                    beta_pred = np.zeros(p)
+                    beta_pred[sub] = beta_hat
+                    beta_list.append(beta_pred)
+
+                ind_opt = np.argmin(mse_list)
+                self.subset = self.subset_list[ind_opt]
+                self.mse = mse_list[ind_opt]
+                self.coef_ = beta_list[ind_opt]
 
         elif method == 'original':
             if X_val is None or y_val is None:
@@ -199,10 +216,10 @@ class model:
             self.subset = result["subset"]
             self.mse = result["mse"]
             self.coef_ = result["coef"]
-            self.lambda_ = result["lambda"]
-            self.run_time = result["time"]
             self.subset_list = result["subset_list"]
-            self.lambda_list = result["lambda_list"]
+            self.lam_list = result["lambda_list"]
+            self.lam_ridge = None
+            self.k_list = None
 
         else:
             raise ValueError(f"Unknown method '{method}'. Use 'glm' or 'original'.")
