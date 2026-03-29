@@ -4,7 +4,7 @@ combss.linear
 Public module for best subset selection in linear regression via COMBSS.
 
 Provides two methods:
-- ``method='glm'`` (default): Frank-Wolfe homotopy algorithm from the
+- ``method='fw'`` (default, Frank-Wolfe): homotopy algorithm from the
   COMBSS-GLM framework (Mathur, Liquet, Muller & Moka, 2026). Uses a closed-form inner
   solver with Danskin's envelope gradient and auto-calibrated penalty schedule.
 - ``method='original'``: Adam optimiser with dynamic lambda grid, as proposed
@@ -28,7 +28,7 @@ class model:
     fit(X_train, y_train, ...)
         Run COMBSS to select the best subset of predictors.
 
-    Attributes (after fitting with method='glm')
+    Attributes (after fitting with method='fw', the Frank-Wolfe method)
     ---------------------------------------------
     subset : ndarray or None
         Indices of the best subset (0-indexed). Requires validation data.
@@ -67,8 +67,8 @@ class model:
 
     def fit(self, X_train, y_train, X_val=None, y_val=None,
             q=None,
-            method='glm',
-            # --- GLM method parameters ---
+            method='fw',
+            # --- Frank-Wolfe method parameters ---
             Niter=25,
             lam_ridge=0,
             alpha=0.01,
@@ -101,17 +101,17 @@ class model:
             Training response vector.
         X_val : ndarray (n_val, p), optional
             Validation design matrix. Required for method='original'.
-            Optional for method='glm'; when provided, the best subset
+            Optional for method='fw'; when provided, the best subset
             is selected by validation MSE and coef_ are computed.
         y_val : ndarray (n_val,), optional
             Validation response. Required for method='original'.
         q : int, optional
             Maximum subset size. Defaults to min(n, p).
         method : str
-            ``'glm'`` (default) for the Frank-Wolfe homotopy algorithm, or
+            ``'fw'`` (default) for the Frank-Wolfe homotopy algorithm, or
             ``'original'`` for the Adam + dynamic lambda grid method.
 
-        GLM method parameters (method='glm')
+        Frank-Wolfe method parameters (method='fw')
         -------------------------------------
         Niter : int
             Number of homotopy iterations (default 25).
@@ -165,7 +165,7 @@ class model:
             Conjugate gradient tolerance (default 1e-5).
         """
 
-        if method == 'glm':
+        if method == 'fw':
             n, p = X_train.shape
             if q is None:
                 q = min(n, p)
@@ -302,6 +302,6 @@ class model:
             self.lambda_ = result["lambda"]
 
         else:
-            raise ValueError(f"Unknown method '{method}'. Use 'glm' or 'original'.")
+            raise ValueError(f"Unknown method '{method}'. Use 'fw' or 'original'.")
 
         return

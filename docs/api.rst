@@ -11,10 +11,10 @@ Best subset selection for linear regression.
 
 Two methods are available:
 
-- **GLM method** (``method='glm'``, default): Frank-Wolfe homotopy algorithm.
-  Sparsity is controlled by ``k`` (model size): COMBSS returns selected
-  features for each ``k = 1, ..., q``.  The ``lam_ridge`` parameter is an
-  optional ridge regularisation on the coefficients in the inner solver.
+- **Frank-Wolfe method** (``method='fw'``, default): Frank-Wolfe homotopy
+  algorithm.  Sparsity is controlled by ``k`` (model size): COMBSS returns
+  selected features for each ``k = 1, ..., q``.  The ``lam_ridge`` parameter
+  is an optional ridge regularisation on the coefficients in the inner solver.
 
 - **Original method** (``method='original'``): Adam optimiser with a dynamic
   lambda grid, as proposed in Moka et al. (2024).  Sparsity is controlled by

@@ -132,12 +132,12 @@ Best subset selection for linear regression.
 
 ```python
 model = combss.linear.model()
-model.fit(X_train, y_train, q=10)              # GLM method (default)
+model.fit(X_train, y_train, q=10)              # Frank-Wolfe method (default)
 model.fit(X_train, y_train, X_val, y_val,      # Original method
           q=10, method='original')
 ```
 
-#### GLM method parameters
+#### Frank-Wolfe method parameters (method='fw', default)
 
 Sparsity is controlled by `k` (model size): COMBSS returns selected features for
 each k = 1, ..., q. The `lam_ridge` parameter is an optional ridge regularisation
@@ -176,7 +176,7 @@ lambda yields a different subset. The best subset is selected by validation MSE.
 
 #### Output attributes
 
-| Attribute | GLM | Original | Description |
+| Attribute | FW | Original | Description |
 |---|:---:|:---:|---|
 | `models` | x | | List of selected subsets for k = 1..q (1-indexed) |
 | `subset` | x | x | Selected feature indices (0-indexed) |
@@ -196,7 +196,7 @@ model = combss.logistic.model()
 model.fit(X_train, y_train, q=15)
 ```
 
-Parameters and attributes are the same as the GLM method in `combss.linear.model`, except labels `y` must be binary {0, 1}.
+Parameters and attributes are the same as the Frank-Wolfe method in `combss.linear.model`, except labels `y` must be binary {0, 1}.
 
 ### `combss.multinomial.model`
 
@@ -211,7 +211,7 @@ model.fit(X_train, y_train, q=20, C=4)
 |---|---|---|
 | `C` | inferred | Number of classes |
 
-Labels `y` must be in {1, ..., C}. All other parameters and attributes are the same as the GLM method in `combss.linear.model`.
+Labels `y` must be in {1, ..., C}. All other parameters and attributes are the same as the Frank-Wolfe method in `combss.linear.model`.
 
 ### `combss.cv.cv_select_lambda`
 
@@ -264,7 +264,7 @@ The penalty schedule is auto-calibrated from the spectral norm of X, so no tunin
 
 ## Intercept Handling
 
-The intercept is handled internally and is not subject to selection. For the GLM method, an intercept column is prepended automatically. For the original method, the intercept is treated the same as other features.
+The intercept is handled internally and is not subject to selection. For the Frank-Wolfe method, an intercept column is prepended automatically. For the original method, the intercept is treated the same as other features.
 
 ## Dependencies
 

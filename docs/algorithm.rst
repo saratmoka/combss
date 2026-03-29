@@ -6,7 +6,7 @@ discrete combinatorial problem of selecting the best :math:`k` predictors as a
 continuous optimisation over the hypercube :math:`[0,1]^p` via a Boolean
 relaxation.
 
-GLM method: Frank-Wolfe homotopy
+Frank-Wolfe method (method='fw')
 ---------------------------------
 
 The Frank-Wolfe homotopy algorithm (Algorithm 1 in the paper) operates as
@@ -71,14 +71,14 @@ The parameter called "lambda" has different meanings in the two methods:
 - **Original method**: :math:`\lambda` is the **sparsity penalty** in the
   COMBSS objective.  A grid of :math:`\lambda` values is searched, and each
   :math:`\lambda` yields a different subset.
-- **GLM method**: ``lam_ridge`` is a **ridge regularisation penalty** on the
+- **Frank-Wolfe method**: ``lam_ridge`` is a **ridge regularisation penalty** on the
   coefficients in the inner solver.  Sparsity is controlled by :math:`k`
   (the model size), not by lambda.  This parameter is typically 0 or small.
 
 Intercept handling
 ------------------
 
-In the GLM method, the intercept is handled internally and is **not** subject
+In the Frank-Wolfe method, the intercept is handled internally and is **not** subject
 to selection.  An intercept column is prepended automatically by the model
 classes.
 
