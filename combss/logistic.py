@@ -33,9 +33,10 @@ class model:
     lam_ridge : float
         Ridge penalty used in the inner solver.
     subset_list : list
-        Sequence of subsets for k = 1, ..., q (0-indexed).
+        Subsets for k = 1, ..., q (0-indexed). May be shorter if early
+        stopping was triggered.
     k_list : list
-        [1, 2, ..., q].
+        Subset sizes evaluated.
     """
 
     def __init__(self):
@@ -49,7 +50,9 @@ class model:
             scale=True,
             verbose=True,
             mandatory_features=None,
-            inner_tol=1e-4):
+            inner_tol=1e-4,
+            patience=20,
+            min_k=20):
         """
         Fit the COMBSS model for binary logistic regression.
 
@@ -80,11 +83,26 @@ class model:
             1-indexed features to force into every model.
         inner_tol : float
             Inner solver convergence tolerance (default 1e-4).
+        patience : int
+            Early stopping patience (default 20). Stop if validation
+            accuracy has not improved for this many consecutive k values.
+            Only active when X_val/y_val are given. Set to None to disable.
+        min_k : int
+            Minimum k values to evaluate before early stopping can
+            trigger (default 20). Capped so min_k + patience <= p.
         """
 
         n, p = X_train.shape
         if q is None:
             q = min(n, p)
+
+        if patience is not None and min_k is not None:
+            if min_k + patience > p:
+                min_k = max(1, p - patience)
+
+        use_early_stop = (patience is not None
+                          and X_val is not None
+                          and y_val is not None)
 
         # Prepend intercept column
         X_fw = np.hstack([np.ones((n, 1)), X_train])
@@ -103,9 +121,41 @@ class model:
             inner_tol=inner_tol,
         )
 
-        # Convert 1-indexed models to 0-indexed subset_list
-        self.subset_list = [np.array(m) - 1 for m in result.models]
-        self.k_list = list(range(1, q + 1))
+        all_subsets = [np.array(m) - 1 for m in result.models]
+
+        if use_early_stop:
+            best_acc = -np.inf
+            no_improve_count = 0
+            stop_k = q
+
+            for k_idx in range(q):
+                sub = all_subsets[k_idx]
+                if len(sub) == 0:
+                    acc_k = 0.0
+                else:
+                    clf = LogisticRegression(penalty=None, solver='lbfgs', max_iter=5000)
+                    clf.fit(X_train[:, sub], y_train)
+                    acc_k = np.mean(clf.predict(X_val[:, sub]) == y_val)
+
+                if acc_k > best_acc:
+                    best_acc = acc_k
+                    no_improve_count = 0
+                else:
+                    no_improve_count += 1
+
+                if (k_idx + 1) >= min_k and no_improve_count >= patience:
+                    stop_k = k_idx + 1
+                    if verbose:
+                        print(f"  Early stopping at k={stop_k} "
+                              f"(no improvement for {patience} steps)")
+                    break
+
+            self.subset_list = all_subsets[:stop_k]
+            self.k_list = list(range(1, stop_k + 1))
+        else:
+            self.subset_list = all_subsets
+            self.k_list = list(range(1, q + 1))
+
         self.lam_ridge = lam_ridge
 
         # If validation data provided, find best k* by accuracy

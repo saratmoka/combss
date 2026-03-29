@@ -38,9 +38,11 @@ class model:
         Regression coefficients (length p, zeros for unselected).
         Requires validation data.
     subset_list : list
-        Subsets for k = 1, ..., q (0-indexed).
+        Subsets for k = 1, ..., q (0-indexed). May be shorter than q
+        if early stopping was triggered.
     k_list : list
-        [1, 2, ..., q].
+        Subset sizes evaluated. May be shorter than [1, ..., q]
+        if early stopping was triggered.
     lam_ridge : float
         Ridge penalty used in the inner solver.
 
@@ -74,6 +76,8 @@ class model:
             verbose=True,
             mandatory_features=None,
             inner_tol=1e-4,
+            patience=20,
+            min_k=20,
             # --- Original method parameters ---
             nlam=50,
             t_init=[],
@@ -81,7 +85,7 @@ class model:
             tau=0.5,
             delta_frac=1,
             eta=0.001,
-            patience=10,
+            gd_patience=10,
             gd_maxiter=1000,
             gd_tol=1e-5,
             cg_maxiter=None,
@@ -124,6 +128,16 @@ class model:
             1-indexed features to force into every model.
         inner_tol : float
             Inner solver convergence tolerance (default 1e-4).
+        patience : int
+            Early stopping patience (default 20). When validation data is
+            provided, stop if validation MSE has not improved for this many
+            consecutive k values. Only active when X_val/y_val are given.
+            Set to None to disable early stopping.
+        min_k : int
+            Minimum number of k values to evaluate before early stopping
+            can trigger (default 20). Together with patience, the total
+            k values evaluated is at least min(min_k + patience, q),
+            capped so that min_k + patience <= p.
 
         Original method parameters (method='original')
         -----------------------------------------------
@@ -139,8 +153,8 @@ class model:
             n/delta in the objective function (default 1).
         eta : float
             Truncation parameter (default 0.001).
-        patience : int
-            Early stopping rounds (default 10).
+        gd_patience : int
+            Patience for Adam termination (default 10).
         gd_maxiter : int
             Maximum Adam iterations (default 1000).
         gd_tol : float
@@ -156,25 +170,85 @@ class model:
             if q is None:
                 q = min(n, p)
 
+            # Cap min_k + patience to not exceed p
+            if patience is not None and min_k is not None:
+                if min_k + patience > p:
+                    min_k = max(1, p - patience)
+
+            # Determine whether to use early stopping
+            use_early_stop = (patience is not None
+                              and X_val is not None
+                              and y_val is not None)
+
             # Prepend intercept column
             X_fw = np.hstack([np.ones((n, 1)), X_train])
 
-            result = oglm.fw(
-                X_fw, y_train,
-                q=q,
-                Niter=Niter,
-                lam=lam_ridge,
-                alpha=alpha,
-                scale=scale,
-                verbose=verbose,
-                mandatory_features=mandatory_features,
-                model_type='linear',
-                inner_tol=inner_tol,
-            )
+            if not use_early_stop:
+                # Run all k = 1, ..., q at once
+                result = oglm.fw(
+                    X_fw, y_train,
+                    q=q,
+                    Niter=Niter,
+                    lam=lam_ridge,
+                    alpha=alpha,
+                    scale=scale,
+                    verbose=verbose,
+                    mandatory_features=mandatory_features,
+                    model_type='linear',
+                    inner_tol=inner_tol,
+                )
+                self.subset_list = [np.array(m) - 1 for m in result.models]
+                self.k_list = list(range(1, q + 1))
 
-            # Convert 1-indexed models to 0-indexed subset_list
-            self.subset_list = [np.array(m) - 1 for m in result.models]
-            self.k_list = list(range(1, q + 1))
+            else:
+                # Run with early stopping: evaluate one k at a time
+                # First run all k up to q (fw returns all at once)
+                result = oglm.fw(
+                    X_fw, y_train,
+                    q=q,
+                    Niter=Niter,
+                    lam=lam_ridge,
+                    alpha=alpha,
+                    scale=scale,
+                    verbose=verbose,
+                    mandatory_features=mandatory_features,
+                    model_type='linear',
+                    inner_tol=inner_tol,
+                )
+                all_subsets = [np.array(m) - 1 for m in result.models]
+
+                # Evaluate validation MSE incrementally with early stopping
+                best_mse = np.inf
+                no_improve_count = 0
+                stop_k = q
+
+                for k_idx in range(q):
+                    sub = all_subsets[k_idx]
+                    if len(sub) == 0:
+                        mse_k = np.inf
+                    else:
+                        X_hat = X_train[:, sub]
+                        beta_hat = pinv(X_hat.T @ X_hat) @ (X_hat.T @ y_train)
+                        y_pred = X_val[:, sub] @ beta_hat
+                        mse_k = np.mean((y_val - y_pred) ** 2)
+
+                    if mse_k < best_mse:
+                        best_mse = mse_k
+                        no_improve_count = 0
+                    else:
+                        no_improve_count += 1
+
+                    # Check early stopping after min_k
+                    if (k_idx + 1) >= min_k and no_improve_count >= patience:
+                        stop_k = k_idx + 1
+                        if verbose:
+                            print(f"  Early stopping at k={stop_k} "
+                                  f"(no improvement for {patience} steps)")
+                        break
+
+                self.subset_list = all_subsets[:stop_k]
+                self.k_list = list(range(1, stop_k + 1))
+
             self.lam_ridge = lam_ridge
 
             # If validation data provided, find best k* by MSE
@@ -215,7 +289,7 @@ class model:
                              delta_frac=delta_frac,
                              nlam=nlam,
                              eta=eta,
-                             patience=patience,
+                             patience=gd_patience,
                              gd_maxiter=gd_maxiter,
                              gd_tol=gd_tol,
                              cg_maxiter=cg_maxiter,
