@@ -35,8 +35,6 @@ class model:
     subset_list : list
         Subsets for k = 1, ..., q (0-indexed). May be shorter if early
         stopping was triggered.
-    k_list : list
-        Subset sizes evaluated.
     """
 
     def __init__(self):
@@ -150,10 +148,8 @@ class model:
                     break
 
             self.subset_list = all_subsets[:stop_k]
-            self.k_list = list(range(1, stop_k + 1))
         else:
             self.subset_list = all_subsets
-            self.k_list = list(range(1, q + 1))
 
         self.lam_ridge = lam_ridge
 

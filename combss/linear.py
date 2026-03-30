@@ -40,9 +40,6 @@ class model:
     subset_list : list
         Subsets for k = 1, ..., q (0-indexed). May be shorter than q
         if early stopping was triggered.
-    k_list : list
-        Subset sizes evaluated. May be shorter than [1, ..., q]
-        if early stopping was triggered.
     lam_ridge : float
         Ridge penalty used in the inner solver.
 
@@ -197,8 +194,7 @@ class model:
                     inner_tol=inner_tol,
                 )
                 self.subset_list = [np.array(m) - 1 for m in result.models]
-                self.k_list = list(range(1, q + 1))
-
+    
             else:
                 # Run with early stopping: evaluate one k at a time
                 # First run all k up to q (fw returns all at once)
@@ -246,7 +242,6 @@ class model:
                         break
 
                 self.subset_list = all_subsets[:stop_k]
-                self.k_list = list(range(1, stop_k + 1))
 
             self.lam_ridge = lam_ridge
 

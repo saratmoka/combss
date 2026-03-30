@@ -54,18 +54,18 @@ print("Best subset:", model.subset)
 print("Best MSE:", model.mse)
 
 # All subsets for k = 1, ..., q
-for k, feat in zip(model.k_list, model.subset_list):
+for k, feat in enumerate(model.subset_list, 1):
     print(f"k={k:2d}  features={feat.tolist()}")
 ```
 
-Without validation data, `subset_list` and `k_list` are still available
+Without validation data, `subset_list` is still available
 but `subset`, `mse`, and `coef_` will be `None`:
 
 ```python
 model = combss.linear.model()
 model.fit(X_train, y_train, q=10)
 
-for k, feat in zip(model.k_list, model.subset_list):
+for k, feat in enumerate(model.subset_list, 1):
     print(f"k={k:2d}  features={feat.tolist()}")
 ```
 
@@ -94,7 +94,7 @@ model.fit(X_train, y_train, X_val=X_val, y_val=y_val, q=15)
 print("Best subset:", model.subset)
 print("Best accuracy:", model.accuracy)
 
-for k, feat in zip(model.k_list, model.subset_list):
+for k, feat in enumerate(model.subset_list, 1):
     print(f"k={k:2d}  features={feat.tolist()}")
 ```
 
@@ -122,7 +122,7 @@ model.fit(X_train, y_train, X_val=X_test, y_val=y_test, q=20, C=C)
 print("Best subset:", model.subset)
 print("Best accuracy:", model.accuracy)
 
-for k, feat in zip(model.k_list, model.subset_list):
+for k, feat in enumerate(model.subset_list, 1):
     print(f"k={k:2d}  features={feat.tolist()}")
 ```
 
@@ -205,12 +205,11 @@ lambda yields a different subset. The best subset is selected by validation MSE.
 
 | Attribute | Description |
 |---|---|
-| `subset_list` | List of subsets for k = 1, ..., q (0-indexed). May be shorter if early stopping triggered |
-| `k_list` | Subset sizes evaluated: [1, 2, ..., q] or shorter with early stopping |
-| `lam_ridge` | Ridge penalty value used |
 | `subset` | Best subset (0-indexed). Requires validation data, otherwise None |
-| `mse` | Validation MSE for best subset. Requires validation data, otherwise None |
 | `coef_` | Regression coefficients (length p, zeros for unselected). Requires validation data, otherwise None |
+| `mse` | Validation MSE for best subset. Requires validation data, otherwise None |
+| `lam_ridge` | Ridge penalty value used |
+| `subset_list` | List of subsets for k = 1, ..., q (0-indexed). May be shorter if early stopping triggered |
 
 #### Output attributes — Original method
 
@@ -240,12 +239,11 @@ in `combss.linear.model`.
 
 | Attribute | Description |
 |---|---|
-| `subset_list` | List of subsets for k = 1, ..., q (0-indexed) |
-| `k_list` | Subset sizes evaluated |
-| `lam_ridge` | Ridge penalty value used |
 | `subset` | Best subset (0-indexed). Requires validation data, otherwise None |
-| `accuracy` | Validation accuracy for best subset. Requires validation data, otherwise None |
 | `coef_` | Logistic coefficients (length p, zeros for unselected). Requires validation data, otherwise None |
+| `accuracy` | Validation accuracy for best subset. Requires validation data, otherwise None |
+| `lam_ridge` | Ridge penalty value used |
+| `subset_list` | List of subsets for k = 1, ..., q (0-indexed) |
 
 ### `combss.multinomial.model`
 
@@ -268,12 +266,11 @@ in `combss.linear.model`, plus:
 
 | Attribute | Description |
 |---|---|
-| `subset_list` | List of subsets for k = 1, ..., q (0-indexed) |
-| `k_list` | Subset sizes evaluated |
-| `lam_ridge` | Ridge penalty value used |
 | `subset` | Best subset (0-indexed). Requires validation data, otherwise None |
-| `accuracy` | Validation accuracy for best subset. Requires validation data, otherwise None |
 | `coef_` | Multinomial coefficients (shape (C, p), zeros for unselected). Requires validation data, otherwise None |
+| `accuracy` | Validation accuracy for best subset. Requires validation data, otherwise None |
+| `lam_ridge` | Ridge penalty value used |
+| `subset_list` | List of subsets for k = 1, ..., q (0-indexed) |
 
 ### `combss.cv.select_lambda`
 

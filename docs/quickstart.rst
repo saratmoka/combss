@@ -22,7 +22,7 @@ With validation data (selects best subset automatically):
    print("Best subset:", model.subset)
    print("Best MSE:", model.mse)
 
-   for k, feat in zip(model.k_list, model.subset_list):
+   for k, feat in enumerate(model.subset_list, 1):
        print(f"k={k:2d}  features={feat.tolist()}")
 
 Without validation data (returns subset path only):
@@ -32,7 +32,7 @@ Without validation data (returns subset path only):
    model = combss.linear.model()
    model.fit(X_train, y_train, q=10)
 
-   for k, feat in zip(model.k_list, model.subset_list):
+   for k, feat in enumerate(model.subset_list, 1):
        print(f"k={k:2d}  features={feat.tolist()}")
 
 To use the original Adam + dynamic-lambda method from v1.x:
@@ -63,7 +63,7 @@ Binary logistic regression
    print("Best subset:", model.subset)
    print("Best accuracy:", model.accuracy)
 
-   for k, feat in zip(model.k_list, model.subset_list):
+   for k, feat in enumerate(model.subset_list, 1):
        print(f"k={k:2d}  features={feat.tolist()}")
 
 Multinomial logistic regression
@@ -92,7 +92,7 @@ Multinomial logistic regression
    print("Best subset:", model.subset)
    print("Best accuracy:", model.accuracy)
 
-   for k, feat in zip(model.k_list, model.subset_list):
+   for k, feat in enumerate(model.subset_list, 1):
        print(f"k={k:2d}  features={feat.tolist()}")
 
 Lambda selection via LOOCV
