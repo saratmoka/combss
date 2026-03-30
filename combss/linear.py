@@ -47,16 +47,16 @@ class model:
     --------------------------------------------------
     subset : ndarray
         Indices of the best subset (0-indexed).
-    mse : float
-        Validation MSE for the best subset.
     coef_ : ndarray
         Regression coefficients (length p, zeros for unselected).
+    mse : float
+        Validation MSE for the best subset.
+    lambda_ : float
+        Optimal lambda value.
     subset_list : list
         Subsets across the lambda grid (0-indexed).
     lambda_list : list
         Lambda grid values.
-    lambda_ : float
-        Optimal lambda value.
     """
 
     def __init__(self):

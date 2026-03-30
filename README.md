@@ -215,12 +215,12 @@ lambda yields a different subset. The best subset is selected by validation MSE.
 
 | Attribute | Description |
 |---|---|
+| `subset` | Best subset (0-indexed) |
+| `coef_` | Regression coefficients (length p, zeros for unselected) |
+| `mse` | Validation MSE for best subset |
+| `lambda_` | Optimal lambda value |
 | `subset_list` | List of subsets across the lambda grid (0-indexed) |
 | `lambda_list` | Lambda grid values |
-| `lambda_` | Optimal lambda value |
-| `subset` | Best subset (0-indexed) |
-| `mse` | Validation MSE for best subset |
-| `coef_` | Regression coefficients (length p, zeros for unselected) |
 
 ### `combss.logistic.model`
 
