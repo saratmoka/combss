@@ -435,7 +435,7 @@ def grid_dynamic(X, y, t_init,
                    cg_maxiter=None,     # Maximum number of iterations allowed by CG
                    cg_tol=1e-5):        # Tolerance of CG
     
-    """ Executes the COMBSS algorithm over a dynamic grid of lambdas to provide a subset for each lambda on the grid.
+    r""" Executes the COMBSS algorithm over a dynamic grid of lambdas to provide a subset for each lambda on the grid.
 
     The dynamic grid of lambda is generated as follows: We are given maximum subset size q of interest. 
     
